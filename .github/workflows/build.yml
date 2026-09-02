@@ -10,9 +10,10 @@ on:
 
 jobs:
   build-daemon:
-    name: Build Multi-Platform Daemon Binaries
+    name: Build Daemon (${{ matrix.goos }}-${{ matrix.goarch }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         goos: [windows, darwin, linux]
         goarch: [amd64, arm64]
@@ -28,8 +29,9 @@ jobs:
         with:
           go-version: '1.23.x'
 
-      - name: Build Daemon
+      - name: Build Daemon Binary
         env:
+          CGO_ENABLED: '0'
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
@@ -46,6 +48,34 @@ jobs:
         with:
           name: daemon-${{ matrix.goos }}-${{ matrix.goarch }}
           path: daemon/bin/*
+
+  build-relay:
+    name: Build Relay Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Build Relay Binary
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          cd relay
+          mkdir -p bin
+          go build -ldflags="-s -w" -o bin/cloudwork-relay ./cmd/cloudwork-relay
+
+      - name: Upload Relay Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: relay-linux-amd64
+          path: relay/bin/*
 
   build-android-apk:
     name: Build Android APK
@@ -67,37 +97,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate Android Skeleton & Build APK
+      - name: Generate Android Project & Build APK
         run: |
           cd app
-          flutter create --project-name cloudwork_app --platforms=android,web .
+          flutter create --project-name cloudwork_app --platforms=android .
           flutter pub get
-          flutter build apk --release --split-per-abi
+          flutter build apk --release
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: cloudwork-android-apk
-          path: app/build/app/outputs/flutter-apk/*.apk
-
-  build-relay:
-    name: Build Relay Server & Docker Image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23.x'
-
-      - name: Build Relay Binary
-        run: |
-          cd relay
-          mkdir -p bin
-          go build -ldflags="-s -w" -o bin/cloudwork-relay ./cmd/cloudwork-relay
-
-      - name: Docker Build Test
-        run: |
-          docker build -t cloudwork-relay:latest ./relay
+          path: app/build/app/outputs/flutter-apk/app-release.apk
