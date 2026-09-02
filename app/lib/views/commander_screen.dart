@@ -210,7 +210,7 @@ class _CommanderScreenState extends State<CommanderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('📡 电脑端实时输出', style: TextStyle(color: Color(0xFF8B949E), fontSize: 12, fontWeight: FontWeight.bold)),
                       Text(_activeStatus, style: const TextStyle(color: Color(0xFF58A6FF), fontSize: 12)),

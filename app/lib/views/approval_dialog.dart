@@ -52,7 +52,7 @@ class ApprovalDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF0D1117),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.Border.all(color: const Color(0xFF30363D)),
+                border: Border.all(color: const Color(0xFF30363D)),
               ),
               child: SelectableText(
                 toolCall?.command ?? toolCall?.description ?? '未知操作',
