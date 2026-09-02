@@ -11,13 +11,18 @@ import (
 	"github.com/cloudwork/cloudwork-daemon/internal/agent"
 	"github.com/cloudwork/cloudwork-daemon/internal/config"
 	"github.com/cloudwork/cloudwork-daemon/internal/security"
+	"github.com/cloudwork/cloudwork-daemon/internal/tunnel"
 	"github.com/cloudwork/cloudwork-daemon/internal/ws"
 	"github.com/fatih/color"
 )
 
 func main() {
 	portFlag := flag.Int("port", 0, "自定义本地监听端口 (默认读取配置 9288)")
+	tunnelFlag := flag.Bool("tunnel", false, "自动启用 Cloudflare 免费公网穿透隧道 (支持 4G/5G/梯子全网络直连)")
+	cfFlag := flag.Bool("cf", false, "自动启用 Cloudflare 免费公网穿透隧道 (同 -tunnel)")
 	flag.Parse()
+
+	useTunnel := *tunnelFlag || *cfFlag
 
 	// 1. 读取或初始化本地配置
 	cfg, err := config.LoadConfig()
@@ -33,6 +38,24 @@ func main() {
 	keyPair, err := security.GenerateKeyPair()
 	if err != nil {
 		log.Fatalf("生成端到端加密密钥对失败: %v", err)
+	}
+
+	var tunnelUrl string
+	if useTunnel {
+		color.Cyan("\n🌐 正在启动 Cloudflare 免费公网穿透隧道 (无需公网IP，梯子与4G均可连)...")
+		tUrl, cfCmd, err := tunnel.StartCloudflareTunnel(cfg.Port)
+		if err != nil {
+			color.Red("⚠️ 启动 Cloudflare 穿透失败 (%v)，将降级为局域网模式。", err)
+		} else {
+			tunnelUrl = tUrl
+			cfg.RelayServer = tunnelUrl
+			color.Green("✓ Cloudflare 隧道已就绪: %s", tunnelUrl)
+			defer func() {
+				if cfCmd != nil && cfCmd.Process != nil {
+					_ = cfCmd.Process.Kill()
+				}
+			}()
+		}
 	}
 
 	// 3. 生成并打印终端配对二维码
