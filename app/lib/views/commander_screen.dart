@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/agent_event.dart';
+import '../models/device_pair.dart';
+import '../services/websocket_client.dart';
 import 'approval_dialog.dart';
+import 'scanner_screen.dart';
 
 class CommanderScreen extends StatefulWidget {
   const CommanderScreen({super.key});
@@ -10,12 +13,84 @@ class CommanderScreen extends StatefulWidget {
 }
 
 class _CommanderScreenState extends State<CommanderScreen> {
+  final WebSocketService _wsService = WebSocketService();
   String _selectedAgent = 'codex';
   final TextEditingController _workingDirCtrl = TextEditingController(text: 'E:\\privateproject\\cloudwork');
   final TextEditingController _promptCtrl = TextEditingController();
   final List<String> _logs = [];
-  bool _isConnected = true;
-  String _activeStatus = '空闲 (就绪)';
+  String _activeStatus = '空闲 (未连接电脑)';
+
+  @override
+  void initState() {
+    super.initState();
+    _wsService.addListener(_onWsStateChange);
+    _wsService.eventStream.listen(_onAgentEvent);
+  }
+
+  @override
+  void dispose() {
+    _wsService.removeListener(_onWsStateChange);
+    _wsService.dispose();
+    _workingDirCtrl.dispose();
+    _promptCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onWsStateChange() {
+    setState(() {
+      if (_wsService.isConnected) {
+        _activeStatus = '已连接到 ${_wsService.connectedHost ?? '电脑'}';
+      } else {
+        _activeStatus = '未连接电脑 (请点击右上角扫码)';
+      }
+    });
+  }
+
+  void _onAgentEvent(AgentEvent ev) {
+    setState(() {
+      _logs.add('[${ev.agentType}] [${ev.status}] ${ev.message ?? ''}\n${ev.rawOutput ?? ''}');
+      _activeStatus = ev.status;
+    });
+
+    if (ev.type == 'tool_call_request') {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => ApprovalDialog(
+          event: ev,
+          onDecide: (allow) {
+            if (allow) {
+              _wsService.approveTool(ev.sessionId);
+              setState(() => _logs.add('>>> 手机端已批准执行命令 ✅'));
+            } else {
+              _wsService.rejectTool(ev.sessionId);
+              setState(() => _logs.add('>>> 手机端已拒绝执行命令 ❌'));
+            }
+          },
+        ),
+      );
+    }
+  }
+
+  void _openScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => ScannerScreen(
+          onPairSuccess: (DevicePair pair) {
+            String targetWs = pair.relayUrl;
+            if (pair.localIps.isNotEmpty) {
+              targetWs = 'ws://${pair.localIps.first}:${pair.port}/ws';
+            }
+            setState(() {
+              _logs.add('>>> 正在连接至电脑: $targetWs');
+            });
+            _wsService.connect(targetWs);
+          },
+        ),
+      ),
+    );
+  }
 
   void _setPrompt(String text) {
     setState(() {
@@ -27,88 +102,112 @@ class _CommanderScreenState extends State<CommanderScreen> {
     final prompt = _promptCtrl.text.trim();
     if (prompt.isEmpty) return;
 
+    if (!_wsService.isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('⚠️ 请先点击右上角【扫码/连接】电脑！'),
+          action: SnackBarAction(label: '去扫码', onPressed: _openScanner),
+        ),
+      );
+      return;
+    }
+
+    _wsService.startSession(_selectedAgent, prompt, _workingDirCtrl.text.trim());
+
     setState(() {
       _logs.add('>>> 派发任务给 [$_selectedAgent]: $prompt');
       _activeStatus = '正在执行任务...';
       _promptCtrl.clear();
     });
-
-    // 模拟测试：触发一个审批弹窗展示
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => ApprovalDialog(
-          event: AgentEvent(
-            sessionId: 'sess_live_test',
-            agentType: _selectedAgent,
-            type: 'tool_call_request',
-            status: 'awaiting_approval',
-            message: 'Agent 请求执行构建与测试命令',
-            toolCall: ToolCallPayload(
-              toolId: 't1',
-              toolName: 'Bash',
-              command: 'go test -v ./...',
-              description: '运行测试以验证代码稳定性',
-            ),
-            timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          ),
-          onDecide: (allow) {
-            setState(() {
-              _logs.add(allow ? '>>> [手机审批] ✅ 允许执行测试' : '>>> [手机审批] ❌ 拒绝执行测试');
-              _activeStatus = allow ? '执行中 (测试已放行)' : '已中断 (用户拒绝)';
-            });
-          },
-        ),
-      );
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isConnected = _wsService.isConnected;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0D1117),
       appBar: AppBar(
         backgroundColor: const Color(0xFF161B22),
         elevation: 0,
-        title: Row(
-          children: [
-            const Text('⚡ CloudWork 指挥官', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: _isConnected ? const Color(0x333FB950) : const Color(0x33F85149),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _isConnected ? const Color(0x663FB950) : const Color(0x66F85149)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: _isConnected ? const Color(0xFF3FB950) : const Color(0xFFF85149),
-                      shape: BoxShape.circle,
+        title: const Text('⚡ CloudWork 指挥官', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF58A6FF)),
+            tooltip: '扫码配对连接电脑',
+            onPressed: _openScanner,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: _openScanner,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isConnected ? const Color(0x333FB950) : const Color(0x33F85149),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isConnected ? const Color(0x663FB950) : const Color(0x66F85149)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: isConnected ? const Color(0xFF3FB950) : const Color(0xFFF85149),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _isConnected ? '已连电脑' : '断开',
-                    style: TextStyle(color: _isConnected ? const Color(0xFF3FB950) : const Color(0xFFF85149), fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      isConnected ? '已连电脑' : '未连接(点击)',
+                      style: TextStyle(color: isConnected ? const Color(0xFF3FB950) : const Color(0xFFF85149), fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 未连接提示卡片
+            if (!isConnected)
+              InkWell(
+                onTap: _openScanner,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C2128),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF58A6FF).withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.qr_code_scanner, color: Color(0xFF58A6FF), size: 28),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('点击扫描电脑屏幕二维码', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                            SizedBox(height: 2),
+                            Text('扫码完成端到端加密握手即可遥控', style: TextStyle(color: Color(0xFF8B949E), fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, color: Color(0xFF8B949E), size: 14),
+                    ],
+                  ),
+                ),
+              ),
+
             // 1. 任务派发面板
             Container(
               padding: const EdgeInsets.all(16),
@@ -219,7 +318,7 @@ class _CommanderScreenState extends State<CommanderScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    height: 180,
+                    height: 200,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0D1117),
