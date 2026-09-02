@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/skip2/go-qrcode"
@@ -53,22 +54,32 @@ func GeneratePairingQRCode(deviceID, deviceName, pubKeyBase64, relayURL string, 
 	return payload, terminalQR, nil
 }
 
-// getLocalIPv4s 获取当前机器的所有局域网 IPv4 地址
+// getLocalIPv4s 获取当前机器的所有真实局域网 IPv4 地址
 func getLocalIPv4s() []string {
-	var ips []string
+	var preferred []string
+	var others []string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		return ips
+		return preferred
 	}
 
 	for _, addr := range addrs {
 		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
 			if ipNet.IP.To4() != nil {
-				ips = append(ips, ipNet.IP.String())
+				ipStr := ipNet.IP.String()
+				// 过滤 Clash TUN 虚拟网卡 (198.18.x.x) 和 APIPA (169.254.x.x)
+				if strings.HasPrefix(ipStr, "198.18.") || strings.HasPrefix(ipStr, "169.254.") {
+					continue
+				}
+				if strings.HasPrefix(ipStr, "192.168.") || strings.HasPrefix(ipStr, "10.") || strings.HasPrefix(ipStr, "172.") {
+					preferred = append(preferred, ipStr)
+				} else {
+					others = append(others, ipStr)
+				}
 			}
 		}
 	}
-	return ips
+	return append(preferred, others...)
 }
 
 // PrintPairingBanner 终端打印炫酷配对横幅

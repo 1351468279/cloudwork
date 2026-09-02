@@ -78,10 +78,30 @@ class _CommanderScreenState extends State<CommanderScreen> {
       MaterialPageRoute(
         builder: (ctx) => ScannerScreen(
           onPairSuccess: (DevicePair pair) {
-            String targetWs = pair.relayUrl;
-            if (pair.localIps.isNotEmpty) {
-              targetWs = 'ws://${pair.localIps.first}:${pair.port}/ws';
+            String targetWs = '';
+            if (pair.relayUrl.isNotEmpty) {
+              targetWs = pair.relayUrl;
+            } else if (pair.localIps.isNotEmpty) {
+              String bestIp = pair.localIps.first;
+              for (final ip in pair.localIps) {
+                if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+                  bestIp = ip;
+                  break;
+                }
+              }
+              targetWs = 'ws://$bestIp:${pair.port}/ws';
             }
+
+            if (!targetWs.startsWith('ws://') && !targetWs.startsWith('wss://')) {
+              if (targetWs.startsWith('https://')) {
+                targetWs = targetWs.replaceFirst('https://', 'wss://');
+              } else if (targetWs.startsWith('http://')) {
+                targetWs = targetWs.replaceFirst('http://', 'ws://');
+              } else {
+                targetWs = 'ws://$targetWs';
+              }
+            }
+
             setState(() {
               _logs.add('>>> 正在连接至电脑: $targetWs');
             });
