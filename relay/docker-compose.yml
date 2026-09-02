@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  relay:
+    build: .
+    container_name: cloudwork-relay
+    restart: always
+    ports:
+      - "9289:9289"
+    environment:
+      - PORT=9289
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9289/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
