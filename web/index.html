@@ -40,7 +40,7 @@
       background: var(--bg);
     }
 
-    /* 1. Antigravity 2.0 移动顶栏 */
+    /* 1. 顶栏导航 */
     .ag-header {
       height: 52px;
       padding: 0 16px;
@@ -59,7 +59,7 @@
       gap: 12px;
       overflow: hidden;
     }
-    .btn-back {
+    .btn-nav-icon {
       background: none;
       border: none;
       color: var(--text);
@@ -73,6 +73,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      cursor: pointer;
     }
     .header-title {
       font-size: 14px;
@@ -81,7 +82,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 220px;
+      max-width: 200px;
     }
     .header-status-sub {
       font-size: 10px;
@@ -128,7 +129,7 @@
       cursor: pointer;
     }
 
-    /* 2. 对话时间线 */
+    /* 2. 主对话流画布 */
     .ag-timeline {
       flex: 1;
       overflow-y: auto;
@@ -141,7 +142,7 @@
     .ag-timeline::-webkit-scrollbar { width: 4px; }
     .ag-timeline::-webkit-scrollbar-thumb { background: #242933; border-radius: 2px; }
 
-    /* 用户气泡：如截图中的简洁圆角深灰底 */
+    /* 用户气泡 */
     .user-bubble {
       align-self: flex-end;
       max-width: 86%;
@@ -227,7 +228,7 @@
     }
     .thinking-accordion.expanded .thinking-body { display: block; }
 
-    /* 智能折叠步骤清单（解决15个胶囊霸屏的核心） */
+    /* 步骤折叠清单 */
     .steps-accordion {
       background: #161920;
       border: 1px solid var(--border);
@@ -305,7 +306,26 @@
       color: #7ee787;
     }
 
-    /* 代码变更卡片（如截图中的 5 files changed +1912 -1183 > Review） */
+    /* 工件卡片 (Implementation Plan 如截图所示) */
+    .artifact-card {
+      background: #161920;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: all 0.2s;
+    }
+    .artifact-card:hover { border-color: var(--primary); }
+    .artifact-icon { font-size: 18px; }
+    .artifact-meta { flex: 1; overflow: hidden; }
+    .artifact-title { font-size: 13px; font-weight: 600; color: #fff; }
+    .artifact-summary { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* 代码变更卡片 */
     .files-changed-card {
       background: #161920;
       border: 1px solid var(--border);
@@ -319,25 +339,15 @@
       transition: all 0.2s;
     }
     .files-changed-card:hover { border-color: var(--primary); }
-    .files-stat {
-      font-size: 12px;
-      font-weight: 500;
-      color: #fff;
-    }
+    .files-stat { font-size: 12px; font-weight: 500; color: #fff; }
     .files-stat .add { color: #3fb950; font-weight: bold; }
     .files-stat .del { color: #f85149; font-weight: bold; }
     .btn-review-card {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 6px;
-      cursor: pointer;
+      background: #21262d; border: 1px solid var(--border);
+      color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
     }
 
-    /* 底部操作反馈栏 (👍 👎 📋 复制 + Token 信息) */
+    /* 底部操作反馈栏 */
     .turn-action-bar {
       display: flex;
       align-items: center;
@@ -346,19 +356,10 @@
       font-size: 11px;
       color: var(--text-dim);
     }
-    .action-icons {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .action-icons { display: flex; align-items: center; gap: 6px; }
     .icon-action-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 4px;
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 4px;
     }
     .icon-action-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
 
@@ -370,9 +371,7 @@
       padding: 12px;
       margin: 4px 0;
     }
-    .approval-title {
-      font-size: 12px; font-weight: 700; color: var(--warning); margin-bottom: 6px;
-    }
+    .approval-title { font-size: 12px; font-weight: 700; color: var(--warning); margin-bottom: 6px; }
     .approval-cmd {
       background: #0e1014; border: 1px solid var(--border);
       border-radius: 6px; padding: 8px; font-family: var(--font-mono);
@@ -388,12 +387,59 @@
       color: #fff; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
 
-    /* 3. 悬浮任务状态条 (Floating Running Tasks Bar 如截图中的 2 tasks running ^) */
+    /* 3. 排队消息卡片 (Queued Messages 如截图所示) */
+    .queued-island {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin: 0 16px 8px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      animation: slideUp 0.2s ease-out;
+      z-index: 12;
+    }
+    .queued-island.active { display: flex; }
+    .queued-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .queued-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .queued-text {
+      font-size: 13px;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .queued-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-queue-action {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-queue-action:hover { color: #fff; }
+
+    /* 4. 悬浮任务状态条 (Running Tasks Bar) */
     .floating-task-bar {
-      position: absolute;
-      bottom: 84px;
-      left: 16px;
-      right: 16px;
+      margin: 0 16px 8px 16px;
       background: #1c2128;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -403,7 +449,7 @@
       justify-content: space-between;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       cursor: pointer;
-      z-index: 15;
+      z-index: 10;
       animation: slideUp 0.2s ease-out;
     }
     .floating-task-bar.active { display: flex; }
@@ -419,28 +465,16 @@
       animation: blink 1s infinite alternate;
     }
     @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
-    .task-bar-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .task-bar-right { display: flex; align-items: center; gap: 8px; }
     .btn-task-stop {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      background: var(--danger);
-      border: none;
-      color: #fff;
-      font-size: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px; background: var(--danger);
+      border: none; color: #fff; font-size: 10px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
     }
 
-    /* 4. Antigravity 2.0 签名集成式输入岛 (Integrated Input Island) */
+    /* 5. 集成式输入岛 (Integrated Input Island) */
     .input-island-container {
-      padding: 8px 16px 14px 16px;
+      padding: 0 16px 14px 16px;
       background: var(--bg);
       flex-shrink: 0;
       position: relative;
@@ -472,32 +506,18 @@
       min-height: 24px;
       font-family: inherit;
     }
-    .island-textarea::placeholder {
-      color: var(--text-dim);
-    }
+    .island-textarea::placeholder { color: var(--text-dim); }
     .island-bottom-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding-top: 2px;
     }
-    .island-left-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .island-left-actions { display: flex; align-items: center; gap: 8px; }
     .btn-plus {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #242933;
-      border: none;
-      color: var(--text-muted);
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      width: 26px; height: 26px; border-radius: 50%; background: #242933;
+      border: none; color: var(--text-muted); font-size: 16px; display: flex;
+      align-items: center; justify-content: center; cursor: pointer;
     }
     .btn-plus:hover { color: #fff; background: #2f3642; }
 
@@ -514,108 +534,121 @@
     }
 
     .btn-send-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #242933;
-      border: none;
-      color: var(--text-dim);
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
+      width: 32px; height: 32px; border-radius: 50%; background: #242933;
+      border: none; color: var(--text-dim); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
     }
     .btn-send-circle.ready {
-      background: var(--primary);
-      color: #0e1014;
-      box-shadow: 0 2px 8px var(--primary-glow);
+      background: var(--primary); color: #0e1014; box-shadow: 0 2px 8px var(--primary-glow);
     }
-    .btn-send-circle.running {
-      background: var(--danger);
-      color: #fff;
-    }
+    .btn-send-circle.running { background: var(--danger); color: #fff; }
 
-    /* 常用芯片栏 (点击 + 展开或默认收起) */
+    /* 快捷芯片栏 */
     .chips-popover {
-      display: none;
-      gap: 6px;
-      padding: 6px 0;
-      overflow-x: auto;
-      white-space: nowrap;
+      display: none; gap: 6px; padding: 6px 0; overflow-x: auto; white-space: nowrap;
     }
     .chips-popover.active { display: flex; }
     .chips-popover::-webkit-scrollbar { display: none; }
     .quick-chip {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 14px;
-      cursor: pointer;
-      flex-shrink: 0;
+      background: #21262d; border: 1px solid var(--border); color: var(--text-muted);
+      font-size: 11px; padding: 4px 10px; border-radius: 14px; cursor: pointer; flex-shrink: 0;
     }
     .quick-chip:hover { color: #fff; border-color: var(--primary); }
 
     /* 斜杠指令浮层 */
     .slash-menu {
-      position: absolute;
-      bottom: 84px;
-      left: 16px;
-      right: 16px;
-      background: #1c2128;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 30;
+      position: absolute; bottom: 84px; left: 16px; right: 16px;
+      background: #1c2128; border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; flex-direction: column;
+      overflow: hidden; z-index: 30;
     }
     .slash-menu.active { display: flex; }
     .slash-row {
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.3);
+      padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+      cursor: pointer; border-bottom: 1px solid rgba(48, 54, 61, 0.3);
     }
     .slash-row:last-child { border-bottom: none; }
     .slash-row:hover { background: #262c36; }
     .slash-cmd { font-family: var(--font-mono); font-size: 13px; color: var(--primary); font-weight: 600; }
     .slash-hint { font-size: 12px; color: var(--text-muted); }
 
-    /* 全屏 Diff 抽屉 */
+    /* 6. 会话与工作区左侧抽屉 (Sessions & Workspaces Drawer) */
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+      z-index: 999; display: none;
+    }
+    .sidebar-overlay.active { display: block; }
+    .sidebar-panel {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px;
+      background: #161920; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; animation: slideRight 0.2s ease-out;
+    }
+    @keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    .sidebar-header {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .btn-new-chat {
+      background: var(--primary); color: #0e1014; border: none; font-size: 12px;
+      font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    }
+    .sidebar-body { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-section-title { font-size: 11px; font-weight: bold; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+    .session-list-item {
+      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .session-list-item:hover { background: #21262d; }
+    .workspace-pill {
+      background: #0e1014; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 10px; font-family: var(--font-mono); font-size: 11px; color: #79c0ff;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* 7. 任务与终端全屏/半屏抽屉 (Terminal Sheet) */
+    .sheet-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      z-index: 990; display: none; align-items: flex-end; justify-content: center;
+    }
+    .sheet-overlay.active { display: flex; }
+    .sheet-card {
+      width: 100%; max-width: 640px; height: 65vh; background: #0e1014;
+      border: 1px solid var(--border); border-radius: 20px 20px 0 0;
+      display: flex; flex-direction: column; overflow: hidden; animation: slideUp 0.2s ease-out;
+    }
+    .sheet-header {
+      padding: 12px 16px; background: #161920; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sheet-title { font-size: 13px; font-weight: 700; color: #fff; }
+    .sheet-body {
+      flex: 1; padding: 12px; overflow-y: auto; font-family: var(--font-mono);
+      font-size: 11px; color: #7ee787; line-height: 1.4; white-space: pre-wrap;
+    }
+
+    /* 8. 全屏 Diff 抽屉 */
     .drawer-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      z-index: 999;
-      display: none;
-      align-items: center;
-      justify-content: center;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
+      z-index: 999; display: none; align-items: center; justify-content: center;
     }
     .drawer-overlay.active { display: flex; }
     .drawer-card {
-      width: 100%; max-width: 600px; height: 92vh;
-      background: #0d1117; border: 1px solid var(--border);
-      border-radius: 20px; display: flex; flex-direction: column;
-      overflow: hidden;
+      width: 100%; max-width: 600px; height: 92vh; background: #0d1117;
+      border: 1px solid var(--border); border-radius: 20px; display: flex;
+      flex-direction: column; overflow: hidden;
     }
     .drawer-header {
-      padding: 14px 18px; background: #161b22;
-      border-bottom: 1px solid var(--border);
+      padding: 14px 18px; background: #161b22; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
     }
     .drawer-title { font-size: 14px; font-weight: 700; color: #fff; }
     .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
     .drawer-body {
-      flex: 1; padding: 14px; overflow-y: auto;
-      font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+      flex: 1; padding: 14px; overflow-y: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
     }
     .diff-line { white-space: pre-wrap; word-break: break-all; padding: 1px 4px; }
     .diff-line.add { background: rgba(35, 134, 54, 0.2); color: #7ee787; }
@@ -626,12 +659,12 @@
 <body>
 
 <div class="app-viewport">
-  <!-- 1. Antigravity 2.0 原生移动顶栏 -->
+  <!-- 1. 顶栏导航 -->
   <header class="ag-header">
     <div class="header-left">
-      <button class="btn-back" onclick="location.reload()" title="刷新会话">←</button>
-      <div class="header-title-box">
-        <span class="header-title">CloudWork Remote Control</span>
+      <button class="btn-nav-icon" onclick="openSidebar()" title="会话与设置">☰</button>
+      <div class="header-title-box" onclick="openSidebar()">
+        <span id="sessionTitle" class="header-title">CloudWork Remote Control</span>
         <div class="header-status-sub">
           <div class="status-dot-mini"></div>
           <span id="headerStatusText">家中电脑已就绪</span>
@@ -657,13 +690,28 @@
       </div>
       <div class="agent-body">
         <p>👋 你好！我是你的 <strong>CloudWork 远程 Agent 协同中心</strong>。</p>
-        <p>支持无感调度你家中电脑的 <strong>OpenAI Codex / Claude Code</strong>。你可以随时在下方输入编程需求或 <code>/</code> 指令。</p>
+        <p>已直连家中电脑，支持调度 <strong>OpenAI Codex / Claude Code</strong>。你可以随时在下方输入指令或使用 <code>/</code> 命令；执行长任务时，你还可以继续在下方<strong>排队追加后续指令</strong>。</p>
       </div>
     </div>
   </main>
 
-  <!-- 3. 悬浮任务状态条 (Running Tasks Bar) -->
-  <div id="floatingTaskBar" class="floating-task-bar" onclick="openTaskDrawer()">
+  <!-- 3. 排队消息卡片 (Queued Messages) -->
+  <div id="queuedIsland" class="queued-island">
+    <div class="queued-header">
+      <span id="queuedCountText">Queued Messages 1 · Sends after agent finishes</span>
+      <span style="font-size: 10px;">˅</span>
+    </div>
+    <div class="queued-body">
+      <span id="queuedMessageText" class="queued-text"></span>
+      <div class="queued-actions">
+        <button class="btn-queue-action" onclick="editQueuedMessage()" title="编辑">✏️</button>
+        <button class="btn-queue-action" onclick="deleteQueuedMessage()" title="删除">🗑️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 悬浮任务状态条 (Running Tasks Bar) -->
+  <div id="floatingTaskBar" class="floating-task-bar" onclick="openTerminalSheet()">
     <div class="task-bar-left">
       <span class="task-spinner">●</span>
       <span id="taskBarText">1 task running (00:00)</span>
@@ -694,9 +742,8 @@
     </div>
   </div>
 
-  <!-- 4. Antigravity 2.0 签名集成式输入岛 -->
+  <!-- 5. Antigravity 2.0 签名集成式输入岛 -->
   <footer class="input-island-container">
-    <!-- 快捷芯片折叠栏 -->
     <div id="chipsPopover" class="chips-popover">
       <div class="quick-chip" onclick="applyPrompt('运行测试并自动修复错误')">🧪 运行测试</div>
       <div class="quick-chip" onclick="applyPrompt('详细审查当前未提交的代码改动')">🔍 审查代码</div>
@@ -717,7 +764,7 @@
 
       <div class="island-bottom-row">
         <div class="island-left-actions">
-          <button class="btn-plus" onclick="toggleQuickChips()" title="快捷操作">+</button>
+          <button class="btn-plus" onclick="toggleQuickChips()" title="快捷芯片">+</button>
           <select id="agentSelect" class="agent-pill-select">
             <option value="codex">OpenAI Codex</option>
             <option value="claude">Claude Code</option>
@@ -726,7 +773,7 @@
           </select>
         </div>
 
-        <button id="sendBtn" class="btn-send-circle" onclick="submitPrompt()" title="发送">
+        <button id="sendBtn" class="btn-send-circle" onclick="handleSendClick()" title="发送">
           <span id="sendIcon">→</span>
         </button>
       </div>
@@ -734,7 +781,43 @@
   </footer>
 </div>
 
-<!-- 全屏 Diff 审查抽屉 -->
+<!-- 6. 会话与工作区侧边抽屉 -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar(event)">
+  <div class="sidebar-panel" onclick="event.stopPropagation()">
+    <div class="sidebar-header">
+      <span style="font-size: 14px; font-weight: bold; color: #fff;">会话与工作区</span>
+      <button class="btn-new-chat" onclick="startNewSession()">+ 新对话</button>
+    </div>
+    <div class="sidebar-body">
+      <div>
+        <div class="sidebar-section-title">电脑端工作目录</div>
+        <div class="workspace-pill">
+          <span id="workspacePath">e:\privateproject\cloudwork</span>
+          <button onclick="changeWorkspaceDir()" style="background: none; border: none; color: var(--primary); cursor: pointer;">更改</button>
+        </div>
+      </div>
+      <div>
+        <div class="sidebar-section-title">最近会话</div>
+        <div id="recentSessionsList">
+          <div class="session-list-item" onclick="selectSession('当前项目远程协同')">💬 当前项目远程协同</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. 终端与后台任务抽屉 (Terminal Sheet) -->
+<div id="terminalSheet" class="sheet-overlay" onclick="closeTerminalSheet(event)">
+  <div class="sheet-card" onclick="event.stopPropagation()">
+    <div class="sheet-header">
+      <div class="sheet-title">⚡ 终端任务控制台</div>
+      <button style="background: none; border: none; color: var(--text-muted); cursor: pointer;" onclick="closeTerminalSheet()">✕</button>
+    </div>
+    <div id="terminalBody" class="sheet-body">等待命令输出...</div>
+  </div>
+</div>
+
+<!-- 8. 全屏 Diff 抽屉 -->
 <div id="diffDrawer" class="drawer-overlay" onclick="closeDiffDrawer(event)">
   <div class="drawer-card" onclick="event.stopPropagation()">
     <div class="drawer-header">
@@ -752,9 +835,12 @@
   let activeSessionId = null;
   let timerInterval = null;
   let sessionSeconds = 0;
-  let currentTurn = null; // 当前 AgentTurn 对象
+  let currentTurn = null;
+  let isExecuting = false;
+  let queuedMessages = []; // 排队消息队列
+  let terminalLogs = [];
 
-  // 1. WebSocket 自动重连与自适应探测
+  // 1. 初始化 WebSocket
   function getWsUrl() {
     if (window.location.protocol === 'file:') {
       return localStorage.getItem('cw_ws_url') || 'ws://127.0.0.1:9288/ws';
@@ -817,6 +903,9 @@
           sel.appendChild(opt);
         });
       }
+      if (res.data.working_dir) {
+        document.getElementById('workspacePath').innerText = res.data.working_dir;
+      }
     } else if (res.type === 'response') {
       if (res.action === 'start_session') {
         if (res.success && res.data) {
@@ -825,6 +914,7 @@
           setTaskBarActive(true, '1 task running');
         } else {
           alert('任务启动失败: ' + (res.error || '未知错误'));
+          isExecuting = false;
           setTaskBarActive(false);
           if (currentTurn) {
             currentTurn.element.remove();
@@ -839,7 +929,7 @@
     }
   }
 
-  // 核心：Antigravity 2.0 事件流处理
+  // 核心：Antigravity 2.0 任务与排队编排
   function dispatchAgentEvent(ev) {
     if (!currentTurn) {
       currentTurn = createAgentTurn(document.getElementById('agentSelect').value);
@@ -847,41 +937,45 @@
 
     const turn = currentTurn;
 
-    // 思考过程
     if (ev.type === 'thinking') {
       turn.updateThinking(ev.message || '正在深度思考与规划...');
-    }
-    // 工具调用开始
-    else if (ev.type === 'tool_call_start') {
+    } else if (ev.type === 'tool_call_start') {
       const cleanCmd = prettifyCommand(ev.message || ev.tool_call?.command || '执行命令');
       turn.addStep(cleanCmd);
       updateTaskBarText(`Running ${cleanCmd}`);
-    }
-    // 工具调用结束
-    else if (ev.type === 'tool_call_end') {
+      appendTerminalLog(`> ${cleanCmd}\n`);
+    } else if (ev.type === 'tool_call_end') {
       turn.finishLastStep(ev.raw_output);
-    }
-    // 权限审批
-    else if (ev.type === 'tool_call_request') {
+      if (ev.raw_output) appendTerminalLog(ev.raw_output + '\n');
+    } else if (ev.type === 'tool_call_request') {
       turn.showApproval(ev);
-    }
-    // 正式回答
-    else if (ev.type === 'agent_message') {
+    } else if (ev.type === 'agent_message') {
       turn.appendMessage(ev.message);
-    }
-    // 任务完成
-    else if (ev.status === 'completed' || ev.type === 'session_finished') {
+      // 智能识别 Implementation Plan 工件
+      if (ev.message.includes('# Implementation Plan') || ev.message.includes('## Proposed Changes')) {
+        turn.showArtifactCard('Implementation Plan', '方案已制定完成，点击查看设计与验证步骤');
+      }
+    } else if (ev.status === 'completed' || ev.type === 'session_finished') {
       turn.markCompleted(ev.message);
       stopTimer();
       setTaskBarActive(false);
+      isExecuting = false;
       currentTurn = null;
-      // 触发一次 diff 状态探测
+
+      // 任务完成后自动探测改动
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
       }
-    }
-    // 杂音过滤网
-    else if (ev.type === 'std_output' && ev.message) {
+
+      // 排队消息自动出队无缝接力执行
+      if (queuedMessages.length > 0) {
+        const nextPrompt = queuedMessages.shift();
+        renderQueuedIsland();
+        setTimeout(() => {
+          executePrompt(nextPrompt);
+        }, 500);
+      }
+    } else if (ev.type === 'std_output' && ev.message) {
       const msg = ev.message.trim();
       if (
         msg.startsWith('Reading additional input') ||
@@ -889,9 +983,10 @@
         msg.includes('failed to refresh available models') ||
         (msg.startsWith('{') && msg.includes('gpt-'))
       ) {
-        return; // 静默丢弃引擎噪音
+        return;
       }
       turn.appendMessage(msg);
+      appendTerminalLog(msg + '\n');
     }
 
     scrollToBottom();
@@ -922,7 +1017,7 @@
       <div class="thinking-body"></div>
     `;
 
-    // 步骤折叠清单（关键：解决霸屏痛点）
+    // 步骤折叠清单
     const stepsBox = document.createElement('div');
     stepsBox.className = 'steps-accordion';
     stepsBox.style.display = 'none';
@@ -943,7 +1038,19 @@
     bodyBox.className = 'agent-body';
     bodyBox.style.display = 'none';
 
-    // 改动卡片
+    // 工件卡片区 (Implementation Plan)
+    const artifactBox = document.createElement('div');
+    artifactBox.className = 'artifact-card';
+    artifactBox.style.display = 'none';
+    artifactBox.innerHTML = `
+      <div class="artifact-icon">📄</div>
+      <div class="artifact-meta">
+        <div id="artifactTitleText" class="artifact-title">Implementation Plan</div>
+        <div id="artifactSummaryText" class="artifact-summary">方案已就绪，点击查看</div>
+      </div>
+    `;
+
+    // 代码改动卡片
     const filesChangedBox = document.createElement('div');
     filesChangedBox.className = 'files-changed-card';
     filesChangedBox.style.display = 'none';
@@ -973,6 +1080,7 @@
     container.appendChild(stepsBox);
     container.appendChild(approvalBox);
     container.appendChild(bodyBox);
+    container.appendChild(artifactBox);
     container.appendChild(filesChangedBox);
     container.appendChild(actionBar);
 
@@ -1033,7 +1141,6 @@
         fullMarkdown += text;
         bodyBox.innerHTML = renderSimpleMarkdown(fullMarkdown);
 
-        // 回答出现后，思考条与步骤列表优雅收拢
         thinkingBox.querySelector('.thinking-title').innerText = '💭 深度规划已就绪';
         thinkingBox.classList.remove('expanded');
 
@@ -1041,6 +1148,15 @@
           stepsBox.querySelector('.steps-summary').innerText = `⚙️ 已完成 ${totalStepsCount} 个执行步骤`;
           stepsBox.classList.remove('expanded');
         }
+      },
+      showArtifactCard(title, summary) {
+        artifactBox.style.display = 'flex';
+        artifactBox.querySelector('#artifactTitleText').innerText = title;
+        artifactBox.querySelector('#artifactSummaryText').innerText = summary;
+      },
+      showFilesChanged(stat) {
+        filesChangedBox.style.display = 'flex';
+        filesChangedBox.querySelector('#filesStatText').innerHTML = stat;
       },
       markCompleted(statsText) {
         actionBar.style.display = 'flex';
@@ -1052,10 +1168,6 @@
           stepsBox.querySelector('.steps-summary').innerText = `⚙️ 已完成 ${totalStepsCount} 个执行步骤`;
           stepsBox.classList.remove('expanded');
         }
-      },
-      showFilesChanged(stat) {
-        filesChangedBox.style.display = 'flex';
-        filesChangedBox.querySelector('#filesStatText').innerHTML = stat;
       }
     };
   }
@@ -1092,23 +1204,34 @@
     }
   }
 
-  // 4. 输入交互与状态管理
-  function submitPrompt() {
+  // 4. 输入交互与排队逻辑
+  function handleSendClick() {
     const input = document.getElementById('promptInput');
     const prompt = input.value.trim();
     if (!prompt) return;
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      alert('请等待电脑端连接就绪后再派发任务！');
+      alert('请等待电脑端连接就绪！');
       return;
     }
 
-    const agent = document.getElementById('agentSelect').value;
-    addUserBubble(prompt);
     input.value = '';
     input.style.height = 'auto';
     closeSlashMenu();
 
+    if (isExecuting) {
+      // 当前已有任务在运行，进入 Queued Messages 排队区
+      queuedMessages.push(prompt);
+      renderQueuedIsland();
+    } else {
+      executePrompt(prompt);
+    }
+  }
+
+  function executePrompt(prompt) {
+    isExecuting = true;
+    const agent = document.getElementById('agentSelect').value;
+    addUserBubble(prompt);
     currentTurn = createAgentTurn(agent);
     setTaskBarActive(true, '1 task running');
 
@@ -1122,6 +1245,33 @@
     }));
   }
 
+  function renderQueuedIsland() {
+    const island = document.getElementById('queuedIsland');
+    if (queuedMessages.length === 0) {
+      island.classList.remove('active');
+      return;
+    }
+    island.classList.add('active');
+    document.getElementById('queuedCountText').innerText = `Queued Messages ${queuedMessages.length} · Sends after agent finishes`;
+    document.getElementById('queuedMessageText').innerText = queuedMessages[0];
+  }
+
+  function editQueuedMessage() {
+    if (queuedMessages.length > 0) {
+      const msg = queuedMessages.shift();
+      document.getElementById('promptInput').value = msg;
+      handleInput({ target: document.getElementById('promptInput') });
+      renderQueuedIsland();
+    }
+  }
+
+  function deleteQueuedMessage() {
+    if (queuedMessages.length > 0) {
+      queuedMessages.shift();
+      renderQueuedIsland();
+    }
+  }
+
   function setTaskBarActive(active, text) {
     const bar = document.getElementById('floatingTaskBar');
     const btn = document.getElementById('sendBtn');
@@ -1130,14 +1280,8 @@
     if (active) {
       bar.classList.add('active');
       document.getElementById('taskBarText').innerText = `${text} (00:00)`;
-      btn.className = 'btn-send-circle running';
-      icon.innerText = '⏹';
-      btn.onclick = terminateSession;
     } else {
       bar.classList.remove('active');
-      btn.className = 'btn-send-circle';
-      icon.innerText = '→';
-      btn.onclick = submitPrompt;
     }
   }
 
@@ -1161,6 +1305,7 @@
     }
     stopTimer();
     setTaskBarActive(false);
+    isExecuting = false;
     if (currentTurn) {
       currentTurn.markCompleted('用户手动终止');
       currentTurn = null;
@@ -1189,7 +1334,7 @@
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      submitPrompt();
+      handleSendClick();
     }
   }
 
@@ -1239,7 +1384,59 @@
     input.focus();
   }
 
-  // 5. Diff 抽屉
+  // 5. 抽屉管理
+  function openSidebar() {
+    document.getElementById('sidebarOverlay').classList.add('active');
+  }
+
+  function closeSidebar(e) {
+    document.getElementById('sidebarOverlay').classList.remove('active');
+  }
+
+  function startNewSession() {
+    closeSidebar();
+    document.getElementById('agTimeline').innerHTML = `
+      <div class="agent-turn">
+        <div class="agent-meta"><div class="agent-icon">AI</div><span>ANTIGRAVITY 2.0</span></div>
+        <div class="agent-body"><p>🌱 已开启新的对话会话，请输入你的新任务。</p></div>
+      </div>
+    `;
+    currentTurn = null;
+    isExecuting = false;
+  }
+
+  function changeWorkspaceDir() {
+    const current = document.getElementById('workspacePath').innerText;
+    const newDir = prompt('请输入家中电脑的目标代码目录绝对路径：', current);
+    if (newDir && newDir !== current) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+          action: 'set_workspace',
+          payload: { working_dir: newDir }
+        }));
+      }
+      document.getElementById('workspacePath').innerText = newDir;
+    }
+  }
+
+  function openTerminalSheet() {
+    document.getElementById('terminalSheet').classList.add('active');
+  }
+
+  function closeTerminalSheet() {
+    document.getElementById('terminalSheet').classList.remove('active');
+  }
+
+  function appendTerminalLog(text) {
+    terminalLogs.push(text);
+    if (terminalLogs.length > 300) terminalLogs.shift();
+    const el = document.getElementById('terminalBody');
+    if (el) {
+      el.innerText = terminalLogs.join('');
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+
   function openDiffDrawer() {
     document.getElementById('diffDrawer').classList.add('active');
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -1251,16 +1448,6 @@
     document.getElementById('diffDrawer').classList.remove('active');
   }
 
-  function openTaskDrawer() {
-    // 展开当前执行步骤
-    if (currentTurn) {
-      const steps = currentTurn.element.querySelector('.steps-accordion');
-      if (steps) {
-        steps.classList.toggle('expanded');
-      }
-    }
-  }
-
   function renderDiffContent(data) {
     const body = document.getElementById('diffBody');
     if (!data || (!data.diff && !data.stat)) {
@@ -1268,7 +1455,6 @@
       return;
     }
 
-    // 如果检测到有修改且当前有回复卡片，展示 Files Changed 卡片
     if (data.stat && currentTurn) {
       currentTurn.showFilesChanged(escapeHtml(data.stat.split('\n')[0]));
     }
@@ -1294,7 +1480,7 @@
     body.innerHTML = html;
   }
 
-  // 6. 辅助工具函数
+  // 6. 辅助工具
   function prettifyCommand(cmd) {
     if (!cmd) return '';
     let c = cmd.trim();

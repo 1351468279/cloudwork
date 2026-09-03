@@ -298,6 +298,24 @@ func (s *WSServer) handleMessage(conn *SafeConn, req *ClientMessage) {
 			Success: true,
 			Data:    files,
 		})
+
+	case "set_workspace":
+		type WsPayload struct {
+			WorkingDir string `json:"working_dir"`
+		}
+		var wp WsPayload
+		_ = json.Unmarshal(req.Payload, &wp)
+		if wp.WorkingDir != "" {
+			s.cfg.WorkingDir = wp.WorkingDir
+		}
+		_ = conn.WriteJSON(ServerResponse{
+			Type:    "response",
+			Action:  "set_workspace",
+			Success: true,
+			Data: map[string]string{
+				"working_dir": s.cfg.WorkingDir,
+			},
+		})
 	}
 }
 
