@@ -3,23 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CloudWork 掌上指挥官 (Antigravity)</title>
+  <title>CloudWork 掌上指挥官 (Antigravity 2.0)</title>
   <style>
     :root {
       --bg: #090d13;
-      --card-bg: #161b22;
+      --card-bg: #14181f;
       --card-inner: #0d1117;
-      --border: #30363d;
+      --border: #2d333b;
       --border-focus: #58a6ff;
       --primary: #58a6ff;
       --primary-hover: #1f6feb;
       --success: #238636;
-      --success-glow: rgba(46, 160, 67, 0.4);
       --danger: #da3633;
       --warning: #d29922;
-      --warning-glow: rgba(210, 153, 34, 0.35);
       --purple: #a371f7;
-      --purple-glow: rgba(163, 113, 247, 0.25);
       --text: #c9d1d9;
       --text-muted: #8b949e;
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -95,7 +92,6 @@
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
     }
     .status-badge.connected {
       background: rgba(35, 134, 54, 0.2);
@@ -112,9 +108,6 @@
       height: 6px;
       border-radius: 50%;
       background: currentColor;
-    }
-    .status-badge.connected .status-dot {
-      box-shadow: 0 0 8px var(--success-glow);
     }
 
     .agent-pill {
@@ -139,14 +132,10 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.2s;
     }
-    .diff-btn:hover {
-      color: #fff;
-      border-color: var(--primary);
-    }
+    .diff-btn:hover { color: #fff; border-color: var(--primary); }
 
-    /* 对话流时间线 */
+    /* 对话流主容器 */
     .chat-timeline {
       flex: 1;
       overflow-y: auto;
@@ -157,13 +146,8 @@
       background: var(--bg);
       scroll-behavior: smooth;
     }
-    .chat-timeline::-webkit-scrollbar {
-      width: 6px;
-    }
-    .chat-timeline::-webkit-scrollbar-thumb {
-      background: #21262d;
-      border-radius: 3px;
-    }
+    .chat-timeline::-webkit-scrollbar { width: 5px; }
+    .chat-timeline::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
 
     /* 用户气泡 */
     .bubble-user {
@@ -175,7 +159,7 @@
       border-radius: 16px 16px 4px 16px;
       font-size: 14px;
       line-height: 1.5;
-      box-shadow: 0 4px 14px rgba(31, 111, 235, 0.25);
+      box-shadow: 0 4px 12px rgba(31, 111, 235, 0.25);
       word-break: break-word;
     }
     .bubble-time {
@@ -185,135 +169,123 @@
       text-align: right;
     }
 
-    /* Agent 气泡主轴 */
-    .bubble-agent {
+    /* Antigravity 2.0 单轮统一回复容器 */
+    .agent-turn {
       align-self: flex-start;
-      max-width: 95%;
+      max-width: 98%;
       width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .agent-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-    .agent-avatar {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #a371f7, #58a6ff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: #fff;
-      font-weight: bold;
-    }
-    .agent-content {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 4px 16px 16px 16px;
       padding: 12px 14px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #e6edf3;
-      word-break: break-word;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: fadeIn 0.2s ease-out;
     }
-    .agent-content p {
-      margin-bottom: 8px;
-    }
-    .agent-content p:last-child {
-      margin-bottom: 0;
-    }
-    .agent-content pre {
-      background: var(--card-inner);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      overflow-x: auto;
-      margin: 8px 0;
-      color: #7ee787;
-    }
-    .agent-content code {
-      background: rgba(110, 118, 129, 0.2);
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 12px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 思考折叠卡片 (Thinking Accordion) */
-    .thinking-card {
-      background: rgba(163, 113, 247, 0.06);
+    .turn-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+      padding-bottom: 6px;
+    }
+    .turn-author {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .agent-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #a371f7, #58a6ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #fff;
+      font-weight: bold;
+    }
+    .turn-status-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .turn-status-tag.running {
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+    }
+    .turn-status-tag.done {
+      background: rgba(35, 134, 54, 0.15);
+      color: #3fb950;
+    }
+
+    /* 1. 思考折叠条 */
+    .turn-thinking {
+      background: rgba(163, 113, 247, 0.08);
       border: 1px solid rgba(163, 113, 247, 0.25);
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
-      margin: 4px 0;
-      transition: all 0.2s;
+      margin: 2px 0;
     }
-    .thinking-card.pulsing {
-      border-color: rgba(163, 113, 247, 0.6);
-      box-shadow: 0 0 16px var(--purple-glow);
-    }
-    .thinking-header {
-      padding: 8px 12px;
+    .thinking-pill {
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      user-select: none;
-      font-size: 12px;
+      font-size: 11px;
       color: #d2a8ff;
-      font-weight: 500;
     }
-    .thinking-header:hover {
-      background: rgba(163, 113, 247, 0.1);
-    }
-    .thinking-body {
+    .thinking-content {
       display: none;
-      padding: 10px 12px;
-      font-size: 12px;
-      color: #bc8cff;
+      padding: 8px 10px;
       font-family: var(--font-mono);
-      line-height: 1.5;
+      font-size: 11px;
+      color: #bc8cff;
+      line-height: 1.4;
       background: rgba(0, 0, 0, 0.25);
       border-top: 1px solid rgba(163, 113, 247, 0.15);
-      max-height: 240px;
+      max-height: 160px;
       overflow-y: auto;
+      white-space: pre-wrap;
     }
-    .thinking-card.expanded .thinking-body {
-      display: block;
-    }
+    .turn-thinking.expanded .thinking-content { display: block; }
 
-    /* 工具调用胶囊 (Tool Badges) */
-    .tool-badge {
-      background: #11151c;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin: 4px 0;
-      overflow: hidden;
-      transition: all 0.2s;
+    /* 2. 工具步骤列表 */
+    .turn-tools {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 2px 0;
     }
-    .tool-badge-header {
-      padding: 8px 12px;
+    .tool-step {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .tool-step-header {
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      font-size: 12px;
-      gap: 8px;
+      gap: 6px;
+      font-size: 11px;
     }
-    .tool-badge-header:hover {
-      background: #161b22;
-    }
-    .tool-cmd {
+    .tool-step-cmd {
       font-family: var(--font-mono);
       color: #79c0ff;
       overflow: hidden;
@@ -321,169 +293,115 @@
       white-space: nowrap;
       flex: 1;
     }
-    .tool-status-tag {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-    .tool-status-tag.running {
-      background: rgba(88, 166, 255, 0.2);
-      color: #58a6ff;
-    }
-    .tool-status-tag.success {
-      background: rgba(35, 134, 54, 0.2);
-      color: #3fb950;
-    }
-    .tool-status-tag.failed {
-      background: rgba(218, 54, 51, 0.2);
-      color: #f85149;
-    }
-    .tool-badge-output {
+    .tool-step-out {
       display: none;
-      padding: 10px;
-      background: var(--card-inner);
+      padding: 8px 10px;
+      background: #090d13;
       border-top: 1px solid var(--border);
       font-family: var(--font-mono);
       font-size: 11px;
       color: #8b949e;
       line-height: 1.4;
-      max-height: 180px;
+      max-height: 160px;
       overflow-y: auto;
       white-space: pre-wrap;
     }
-    .tool-badge.expanded .tool-badge-output {
-      display: block;
-    }
+    .tool-step.expanded .tool-step-out { display: block; }
 
-    /* 行内审批卡片 (Inline Approval Card) */
-    .approval-card {
-      background: rgba(210, 153, 34, 0.08);
-      border: 1.5px solid var(--warning);
-      box-shadow: 0 0 20px var(--warning-glow);
-      border-radius: 14px;
-      padding: 14px;
-      margin: 8px 0;
-      animation: pulseAlert 2s infinite ease-in-out;
+    /* 3. 正式回答文本 */
+    .turn-message {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e6edf3;
+      word-break: break-word;
+      margin-top: 2px;
     }
-    @keyframes pulseAlert {
-      0%, 100% { box-shadow: 0 0 16px var(--warning-glow); }
-      50% { box-shadow: 0 0 26px rgba(210, 153, 34, 0.6); }
-    }
-    .approval-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--warning);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .approval-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-    .approval-cmd {
+    .turn-message p { margin-bottom: 8px; }
+    .turn-message p:last-child { margin-bottom: 0; }
+    .turn-message pre {
       background: var(--card-inner);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 10px;
       font-family: var(--font-mono);
       font-size: 12px;
-      color: #7ee787;
-      margin-bottom: 14px;
       overflow-x: auto;
+      margin: 6px 0;
+      color: #7ee787;
+    }
+    .turn-message code {
+      background: rgba(110, 118, 129, 0.2);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* 4. 行内审批卡片 */
+    .turn-approval {
+      background: rgba(210, 153, 34, 0.08);
+      border: 1.5px solid var(--warning);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 4px 0;
+    }
+    .approval-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .approval-cmd {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #7ee787;
+      margin-bottom: 10px;
       white-space: pre-wrap;
       word-break: break-all;
     }
-    .approval-actions {
-      display: flex;
-      gap: 10px;
-    }
+    .approval-actions { display: flex; gap: 8px; }
     .btn-reject {
-      flex: 1;
-      height: 42px;
-      background: transparent;
-      border: 1.5px solid var(--danger);
-      color: #f85149;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
+      flex: 1; height: 38px; background: transparent; border: 1.5px solid var(--danger);
+      color: #f85149; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
     .btn-approve {
-      flex: 1;
-      height: 42px;
-      background: var(--success);
-      border: none;
-      color: #fff;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      box-shadow: 0 4px 12px var(--success-glow);
+      flex: 1; height: 38px; background: var(--success); border: none;
+      color: #fff; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
-    .approval-decided {
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .approval-decided.approved {
-      background: rgba(35, 134, 54, 0.2);
-      color: #3fb950;
-      border: 1px solid rgba(35, 134, 54, 0.4);
-    }
-    .approval-decided.rejected {
-      background: rgba(218, 54, 51, 0.2);
-      color: #f85149;
-      border: 1px solid rgba(218, 54, 51, 0.4);
+    .approval-done {
+      font-size: 11px; padding: 4px 8px; border-radius: 6px;
+      background: rgba(35, 134, 54, 0.2); color: #3fb950; display: inline-block;
     }
 
-    /* 代码变更卡片 (Diff Review Badge) */
-    .diff-badge {
-      background: #1c2128;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
+    /* 5. 底部浅灰统计行 (Antigravity Footer) */
+    .turn-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .diff-badge:hover {
-      border-color: var(--primary);
-    }
-    .diff-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #fff;
-    }
-    .diff-stat {
-      font-size: 11px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(48, 54, 61, 0.3);
+      font-size: 10px;
       color: var(--text-muted);
     }
-    .diff-link {
-      color: var(--primary);
-      font-size: 12px;
-      font-weight: 600;
+    .turn-copy-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
+    .turn-copy-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
 
-    /* 快捷指令芯片栏 (Prompt Chips) */
+    /* 快捷指令芯片栏 */
     .chips-bar {
       padding: 8px 14px;
       background: #11151c;
@@ -493,35 +411,27 @@
       overflow-x: auto;
       white-space: nowrap;
     }
-    .chips-bar::-webkit-scrollbar {
-      display: none;
-    }
+    .chips-bar::-webkit-scrollbar { display: none; }
     .prompt-chip {
       background: #1c2128;
       border: 1px solid var(--border);
       color: #c9d1d9;
       font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 20px;
+      padding: 5px 12px;
+      border-radius: 16px;
       cursor: pointer;
-      user-select: none;
-      transition: all 0.2s;
       flex-shrink: 0;
     }
-    .prompt-chip:hover, .prompt-chip:active {
-      background: #262c36;
-      border-color: var(--primary);
-      color: #fff;
-    }
+    .prompt-chip:hover { border-color: var(--primary); color: #fff; }
 
-    /* 底部智能输入栏 (Smart Command Bar) */
+    /* 底部智能输入栏 */
     .input-bar {
-      padding: 12px 14px;
+      padding: 10px 14px;
       background: var(--card-bg);
       border-top: 1px solid var(--border);
       display: flex;
       align-items: flex-end;
-      gap: 10px;
+      gap: 8px;
       position: relative;
     }
     .input-wrapper {
@@ -533,7 +443,6 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      transition: border-color 0.2s;
     }
     .input-wrapper:focus-within {
       border-color: var(--border-focus);
@@ -558,13 +467,11 @@
       min-height: 24px;
       font-family: inherit;
     }
-    .smart-textarea::placeholder {
-      color: #484f58;
-    }
+    .smart-textarea::placeholder { color: #484f58; }
 
     .btn-send {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       background: var(--primary);
       border: none;
@@ -575,39 +482,25 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      transition: all 0.2s;
     }
-    .btn-send:hover {
-      background: var(--primary-hover);
-    }
-    .btn-send:disabled {
-      background: #21262d;
-      color: #484f58;
-      cursor: not-allowed;
-    }
-    .btn-stop {
-      background: var(--danger);
-      color: #fff;
-    }
+    .btn-stop { background: var(--danger); color: #fff; }
 
-    /* 斜杠指令浮层 (Slash Commands Popover) */
+    /* 斜杠指令浮层 */
     .slash-popover {
       position: absolute;
-      bottom: 74px;
+      bottom: 70px;
       left: 14px;
       right: 14px;
       background: #1c2128;
       border: 1px solid var(--border);
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       display: none;
       flex-direction: column;
       overflow: hidden;
       z-index: 20;
     }
-    .slash-popover.active {
-      display: flex;
-    }
+    .slash-popover.active { display: flex; }
     .slash-item {
       padding: 10px 14px;
       display: flex;
@@ -615,104 +508,45 @@
       gap: 10px;
       cursor: pointer;
       border-bottom: 1px solid rgba(48, 54, 61, 0.4);
-      transition: background 0.15s;
     }
-    .slash-item:last-child {
-      border-bottom: none;
-    }
-    .slash-item:hover {
-      background: #262c36;
-    }
-    .slash-key {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .slash-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .slash-item:last-child { border-bottom: none; }
+    .slash-item:hover { background: #262c36; }
+    .slash-key { font-family: var(--font-mono); font-size: 13px; color: var(--primary); font-weight: 600; }
+    .slash-desc { font-size: 12px; color: var(--text-muted); }
 
-    /* Diff 审查抽屉 (Full-Screen Diff Drawer) */
+    /* Diff 审查抽屉 */
     .drawer-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(8px);
       z-index: 999;
       display: none;
       align-items: center;
       justify-content: center;
     }
-    .drawer-overlay.active {
-      display: flex;
-    }
+    .drawer-overlay.active { display: flex; }
     .drawer-card {
-      width: 100%;
-      max-width: 540px;
-      height: 90vh;
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
+      width: 100%; max-width: 540px; height: 90vh;
+      background: #0d1117; border: 1px solid var(--border);
+      border-radius: 20px; display: flex; flex-direction: column;
       overflow: hidden;
-      animation: slideUp 0.25s ease-out;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
     .drawer-header {
-      padding: 14px 18px;
-      background: #161b22;
+      padding: 14px 18px; background: #161b22;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .drawer-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .drawer-close {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 18px;
-      cursor: pointer;
-    }
+    .drawer-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
     .drawer-body {
-      flex: 1;
-      padding: 14px;
-      overflow-y: auto;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.5;
+      flex: 1; padding: 14px; overflow-y: auto;
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
     }
-    .diff-line {
-      white-space: pre-wrap;
-      word-break: break-all;
-      padding: 1px 4px;
-    }
-    .diff-line.add {
-      background: rgba(35, 134, 54, 0.2);
-      color: #7ee787;
-    }
-    .diff-line.del {
-      background: rgba(218, 54, 51, 0.2);
-      color: #f85149;
-    }
-    .diff-line.header {
-      color: #58a6ff;
-      font-weight: bold;
-      margin-top: 8px;
-    }
+    .diff-line { white-space: pre-wrap; word-break: break-all; padding: 1px 4px; }
+    .diff-line.add { background: rgba(35, 134, 54, 0.2); color: #7ee787; }
+    .diff-line.del { background: rgba(218, 54, 51, 0.2); color: #f85149; }
+    .diff-line.header { color: #58a6ff; font-weight: bold; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -726,13 +560,13 @@
 
     <div class="header-actions">
       <select id="agentSelect" class="agent-pill">
-        <option value="claude">Claude Code (claude)</option>
-        <option value="codex">OpenAI Codex (codex)</option>
-        <option value="aider">Aider (aider)</option>
-        <option value="generic">通用 CLI (generic)</option>
+        <option value="claude">Claude Code</option>
+        <option value="codex">OpenAI Codex</option>
+        <option value="aider">Aider</option>
+        <option value="generic">通用 CLI</option>
       </select>
 
-      <button id="diffBtn" class="diff-btn" onclick="openDiffDrawer()">
+      <button class="diff-btn" onclick="openDiffDrawer()">
         <span>📝 改动</span>
       </button>
 
@@ -746,14 +580,17 @@
   <!-- 对话时间线 -->
   <main id="chatTimeline" class="chat-timeline">
     <!-- 欢迎卡片 -->
-    <div class="bubble-agent">
-      <div class="agent-header">
-        <div class="agent-avatar">AI</div>
-        <span>CloudWork 掌上指挥官</span>
+    <div class="agent-turn">
+      <div class="turn-header">
+        <div class="turn-author">
+          <div class="agent-avatar">AI</div>
+          <span>CloudWork 指挥官</span>
+        </div>
+        <span class="turn-status-tag done">就绪</span>
       </div>
-      <div class="agent-content">
+      <div class="turn-message">
         <p>👋 你好！我是你的 <strong>CloudWork 远程 Agent 协同中心</strong>。</p>
-        <p>你现在随时可以通过下方输入需求或 <code>/</code> 指令，我将无感调度你家中电脑的 <strong>Claude Code / Codex</strong> 编写代码、审查改动并自动运行测试。</p>
+        <p>你现在随时可以通过下方直接下达编程需求或 <code>/</code> 指令，我将调度你电脑本地的 <strong>Claude Code / Codex</strong> 编写代码、审查改动并自动运行测试。</p>
       </div>
     </div>
   </main>
@@ -791,7 +628,7 @@
   <footer class="input-bar">
     <div class="input-wrapper">
       <div class="input-hint">
-        <span>输入 / 触发指令 · 凭据电脑本地继承</span>
+        <span>输入 / 触发指令 · 凭据本地继承</span>
         <span id="sessionTimer">00:00</span>
       </div>
       <textarea
@@ -828,11 +665,9 @@
   let activeSessionId = null;
   let timerInterval = null;
   let sessionSeconds = 0;
-  let currentThinkingCard = null;
-  let currentThinkingTimer = null;
-  let activeToolBadges = {};
+  let currentTurn = null; // 当前正在运行的 AgentTurn 统一卡片
 
-  // 1. 初始化 WebSocket 动态自适应探测
+  // 1. WebSocket 自动探测与重连
   function getWsUrl() {
     if (window.location.protocol === 'file:') {
       return localStorage.getItem('cw_ws_url') || 'ws://127.0.0.1:9288/ws';
@@ -887,7 +722,7 @@
     statusText.innerText = text;
   }
 
-  // 2. 消息协议与 Antigravity 事件流分发
+  // 2. 消息处理与 Antigravity 2.0 单轮回复架构
   function handleServerMessage(res) {
     if (res.type === 'status' && res.data) {
       if (res.data.available_agents && res.data.available_agents.length > 0) {
@@ -912,6 +747,10 @@
         } else {
           alert('启动任务失败: ' + (res.error || '未知错误'));
           setSendButtonState(false);
+          if (currentTurn) {
+            currentTurn.element.remove();
+            currentTurn = null;
+          }
         }
       } else if (res.action === 'get_diff') {
         renderDiffContent(res.data);
@@ -921,69 +760,202 @@
     }
   }
 
+  // 核心：所有事件统一归入当前单轮卡片，绝不产生多余独立气泡
   function dispatchAgentEvent(ev) {
-    const timeline = document.getElementById('chatTimeline');
+    if (!currentTurn) {
+      currentTurn = createAgentTurnContainer(document.getElementById('agentSelect').value);
+    }
 
-    // 思考中 (Thinking)
+    const turn = currentTurn;
+
+    // 1. 思考过程 (Thinking)
     if (ev.type === 'thinking') {
-      if (!currentThinkingCard) {
-        currentThinkingCard = createThinkingCard(ev.message || '正在深度思考与架构规划...');
-        timeline.appendChild(currentThinkingCard);
-        scrollToBottom();
-      } else {
-        appendThinkingContent(ev.message);
-      }
+      turn.showThinking(ev.message || '正在深度思考与架构规划...');
     }
-    // 工具调用开始 (ToolCallStart)
+    // 2. 工具调用开始 (ToolCallStart)
     else if (ev.type === 'tool_call_start') {
-      finishThinking();
-      const toolBadge = createToolBadge(ev.message || ev.tool_call?.command || '执行操作');
-      timeline.appendChild(toolBadge);
-      scrollToBottom();
+      turn.addToolStep(ev.message || ev.tool_call?.command || '执行命令');
     }
-    // 工具调用完成 (ToolCallEnd)
+    // 3. 工具调用完成 (ToolCallEnd)
     else if (ev.type === 'tool_call_end') {
-      updateLastToolBadge(ev.raw_output);
-      scrollToBottom();
+      turn.finishLatestToolStep(ev.raw_output);
     }
-    // 权限审批 (ToolCallRequest)
+    // 4. 权限审批 (ToolCallRequest)
     else if (ev.type === 'tool_call_request') {
-      finishThinking();
-      const approvalCard = createApprovalCard(ev);
-      timeline.appendChild(approvalCard);
-      scrollToBottom();
+      turn.showApprovalCard(ev);
     }
-    // 文本回复 (AgentMessage)
+    // 5. 正式文本回复 (AgentMessage)
     else if (ev.type === 'agent_message') {
-      finishThinking();
-      const msgBubble = createAgentBubble(ev.message);
-      timeline.appendChild(msgBubble);
-      scrollToBottom();
+      turn.appendMessageText(ev.message);
     }
-    // 任务状态结束
+    // 6. 任务结束
     else if (ev.status === 'completed' || ev.type === 'session_finished') {
-      finishThinking();
+      turn.markCompleted(ev.message);
       stopTimer();
       setSendButtonState(false);
-      const doneBubble = createAgentBubble(`✅ **任务执行完毕！** ${ev.message || ''}`);
-      timeline.appendChild(doneBubble);
-      scrollToBottom();
-      // 任务完成后自动尝试探测 Diff
-      requestDiff();
+      currentTurn = null;
     }
-    // 普通输出流降级
+    // 7. 过滤噪音，普通合法文本流入思考或正文
     else if (ev.type === 'std_output' && ev.message) {
-      if (currentThinkingCard) {
-        appendThinkingContent(ev.message);
-      } else {
-        const fallback = createAgentBubble(ev.message);
-        timeline.appendChild(fallback);
-        scrollToBottom();
+      const msg = ev.message.trim();
+      // 严密白名单过滤网：过滤一切底层 CLI 引擎杂音
+      if (
+        msg.startsWith('Reading additional input') ||
+        msg.includes('codex_models_manager') ||
+        msg.includes('failed to refresh available models') ||
+        (msg.startsWith('{') && msg.includes('gpt-'))
+      ) {
+        return; // 静默丢弃
       }
+      turn.appendFallbackOutput(msg);
     }
+
+    scrollToBottom();
   }
 
-  // 3. UI 节点生成工厂
+  // 3. Antigravity 2.0 单轮回复组件实现
+  function createAgentTurnContainer(agentType) {
+    const timeline = document.getElementById('chatTimeline');
+    const container = document.createElement('div');
+    container.className = 'agent-turn';
+
+    const header = document.createElement('div');
+    header.className = 'turn-header';
+    header.innerHTML = `
+      <div class="turn-author">
+        <div class="agent-avatar">AI</div>
+        <span style="text-transform: uppercase;">${escapeHtml(agentType)}</span>
+      </div>
+      <span class="turn-status-tag running">思考中...</span>
+    `;
+
+    // 思考栏
+    const thinkingBox = document.createElement('div');
+    thinkingBox.className = 'turn-thinking';
+    thinkingBox.style.display = 'none';
+    thinkingBox.innerHTML = `
+      <div class="thinking-pill" onclick="this.parentElement.classList.toggle('expanded')">
+        <span class="thinking-title">💭 正在思考与规划...</span>
+        <span style="font-size: 10px;">[展开/收折]</span>
+      </div>
+      <div class="thinking-content"></div>
+    `;
+
+    // 工具调用清单
+    const toolsBox = document.createElement('div');
+    toolsBox.className = 'turn-tools';
+    toolsBox.style.display = 'none';
+
+    // 审批卡片区
+    const approvalBox = document.createElement('div');
+    approvalBox.style.display = 'none';
+
+    // 回复正文
+    const messageBox = document.createElement('div');
+    messageBox.className = 'turn-message';
+    messageBox.style.display = 'none';
+
+    // 底部统计小标
+    const footer = document.createElement('div');
+    footer.className = 'turn-footer';
+    footer.style.display = 'none';
+    footer.innerHTML = `
+      <span class="turn-stats"></span>
+      <button class="turn-copy-btn" onclick="copyTextFromElement(this)">📋 复制回答</button>
+    `;
+
+    container.appendChild(header);
+    container.appendChild(thinkingBox);
+    container.appendChild(toolsBox);
+    container.appendChild(approvalBox);
+    container.appendChild(messageBox);
+    container.appendChild(footer);
+
+    timeline.appendChild(container);
+    scrollToBottom();
+
+    let fullAnswerMarkdown = '';
+    let latestToolEl = null;
+
+    return {
+      element: container,
+      showThinking(text) {
+        thinkingBox.style.display = 'block';
+        const content = thinkingBox.querySelector('.thinking-content');
+        if (content) {
+          content.innerText = text;
+        }
+      },
+      addToolStep(cmd) {
+        toolsBox.style.display = 'flex';
+        const step = document.createElement('div');
+        step.className = 'tool-step';
+        step.innerHTML = `
+          <div class="tool-step-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span style="color: #58a6ff;">💻</span>
+            <span class="tool-step-cmd">${escapeHtml(cmd)}</span>
+            <span style="color: #58a6ff; font-size: 10px;">运行中...</span>
+          </div>
+          <div class="tool-step-out">正在执行命令，等待输出...</div>
+        `;
+        toolsBox.appendChild(step);
+        latestToolEl = step;
+      },
+      finishLatestToolStep(output) {
+        if (!latestToolEl) return;
+        const tag = latestToolEl.querySelector('.tool-step-header span:last-child');
+        if (tag) {
+          tag.innerText = '✓ 完成';
+          tag.style.color = '#3fb950';
+        }
+        const out = latestToolEl.querySelector('.tool-step-out');
+        if (out && output) {
+          out.innerText = output;
+        }
+        latestToolEl = null;
+      },
+      showApprovalCard(ev) {
+        approvalBox.style.display = 'block';
+        const cmd = ev.tool_call?.command || ev.message || '未知操作';
+        approvalBox.innerHTML = `
+          <div class="turn-approval">
+            <div class="approval-title">⚠️ 权限审批请求</div>
+            <div class="approval-cmd">${escapeHtml(cmd)}</div>
+            <div class="approval-actions">
+              <button class="btn-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝</button>
+              <button class="btn-approve" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
+            </div>
+          </div>
+        `;
+      },
+      appendMessageText(text) {
+        if (!text) return;
+        messageBox.style.display = 'block';
+        fullAnswerMarkdown += text;
+        messageBox.innerHTML = renderSimpleMarkdown(fullAnswerMarkdown);
+        // 回答出现时自动折叠思考条
+        const thinkTitle = thinkingBox.querySelector('.thinking-title');
+        if (thinkTitle) thinkTitle.innerText = '💭 深度规划已就绪';
+        thinkingBox.classList.remove('expanded');
+      },
+      appendFallbackOutput(output) {
+        // 如果尚无正文，将有效输出作为回复正文渐进呈现
+        this.appendMessageText(output);
+      },
+      markCompleted(statsText) {
+        const tag = header.querySelector('.turn-status-tag');
+        if (tag) {
+          tag.className = 'turn-status-tag done';
+          tag.innerText = '完成';
+        }
+        // 优雅底部小标
+        footer.style.display = 'flex';
+        let statMsg = statsText || '任务已就绪';
+        statMsg = statMsg.replace(/✅/g, '').trim();
+        footer.querySelector('.turn-stats').innerText = `${statMsg} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+    };
+  }
 
   function addUserBubble(text) {
     const timeline = document.getElementById('chatTimeline');
@@ -998,108 +970,6 @@
     scrollToBottom();
   }
 
-  function createAgentBubble(markdownText) {
-    const wrap = document.createElement('div');
-    wrap.className = 'bubble-agent';
-
-    const header = document.createElement('div');
-    header.className = 'agent-header';
-    header.innerHTML = `
-      <div class="agent-avatar">AI</div>
-      <span>${document.getElementById('agentSelect').value.toUpperCase()}</span>
-    `;
-
-    const content = document.createElement('div');
-    content.className = 'agent-content';
-    content.innerHTML = renderSimpleMarkdown(markdownText);
-
-    wrap.appendChild(header);
-    wrap.appendChild(content);
-    return wrap;
-  }
-
-  function createThinkingCard(initialText) {
-    const card = document.createElement('div');
-    card.className = 'thinking-card pulsing expanded';
-    card.innerHTML = `
-      <div class="thinking-header" onclick="this.parentElement.classList.toggle('expanded')">
-        <span>💭 深度思考中 · 规划步骤中...</span>
-        <span style="font-size: 10px;">[折叠/展开]</span>
-      </div>
-      <div class="thinking-body">${escapeHtml(initialText)}</div>
-    `;
-    return card;
-  }
-
-  function appendThinkingContent(text) {
-    if (!currentThinkingCard) return;
-    const body = currentThinkingCard.querySelector('.thinking-body');
-    if (body) {
-      body.innerText += '\n' + text;
-      body.scrollTop = body.scrollHeight;
-    }
-  }
-
-  function finishThinking() {
-    if (currentThinkingCard) {
-      currentThinkingCard.classList.remove('pulsing');
-      currentThinkingCard.classList.remove('expanded');
-      const header = currentThinkingCard.querySelector('.thinking-header span');
-      if (header) {
-        header.innerText = '💭 深度规划已就绪';
-      }
-      currentThinkingCard = null;
-    }
-  }
-
-  let latestToolBadge = null;
-
-  function createToolBadge(cmd) {
-    const badge = document.createElement('div');
-    badge.className = 'tool-badge';
-    badge.innerHTML = `
-      <div class="tool-badge-header" onclick="this.parentElement.classList.toggle('expanded')">
-        <span style="font-size: 13px;">💻</span>
-        <span class="tool-cmd">${escapeHtml(cmd)}</span>
-        <span class="tool-status-tag running">运行中...</span>
-      </div>
-      <div class="tool-badge-output">正在执行命令，等待输出...</div>
-    `;
-    latestToolBadge = badge;
-    return badge;
-  }
-
-  function updateLastToolBadge(output) {
-    if (!latestToolBadge) return;
-    const tag = latestToolBadge.querySelector('.tool-status-tag');
-    if (tag) {
-      tag.className = 'tool-status-tag success';
-      tag.innerText = '✓ 完成';
-    }
-    const out = latestToolBadge.querySelector('.tool-badge-output');
-    if (out && output) {
-      out.innerText = output;
-    }
-    latestToolBadge = null;
-  }
-
-  function createApprovalCard(ev) {
-    const card = document.createElement('div');
-    card.className = 'approval-card';
-    const cmd = ev.tool_call?.command || ev.message || '未知操作';
-
-    card.innerHTML = `
-      <div class="approval-title">⚠️ 权限审批请求</div>
-      <div class="approval-desc">Agent 正在请求在电脑上执行以下操作，请确认放行：</div>
-      <div class="approval-cmd">${escapeHtml(cmd)}</div>
-      <div class="approval-actions">
-        <button class="btn-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝执行</button>
-        <button class="btn-approve" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
-      </div>
-    `;
-    return card;
-  }
-
   function decideApproval(sessionId, allow, btn) {
     if (!socket) return;
     const action = allow ? 'approve' : 'reject';
@@ -1109,12 +979,11 @@
       payload: {}
     }));
 
-    const card = btn.closest('.approval-card');
+    const card = btn.closest('.turn-approval');
     if (card) {
-      card.style.animation = 'none';
       card.innerHTML = `
-        <div class="approval-decided ${allow ? 'approved' : 'rejected'}">
-          ${allow ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作'} · ${new Date().toLocaleTimeString()}
+        <div class="approval-done">
+          ${allow ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作'} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       `;
     }
@@ -1136,6 +1005,9 @@
     input.value = '';
     input.style.height = 'auto';
     closeSlashMenu();
+
+    // 立即建立本次回复的 Antigravity 单轮容器
+    currentTurn = createAgentTurnContainer(agent);
 
     setSendButtonState(true);
 
@@ -1174,6 +1046,10 @@
     }
     stopTimer();
     setSendButtonState(false);
+    if (currentTurn) {
+      currentTurn.markCompleted('用户已手动终止任务');
+      currentTurn = null;
+    }
   }
 
   function applyPrompt(text) {
@@ -1220,20 +1096,13 @@
   // 5. Diff 抽屉逻辑
   function openDiffDrawer() {
     document.getElementById('diffDrawer').classList.add('active');
-    requestDiff();
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
+    }
   }
 
   function closeDiffDrawer(e) {
     document.getElementById('diffDrawer').classList.remove('active');
-  }
-
-  function requestDiff() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        action: 'get_diff',
-        payload: {}
-      }));
-    }
   }
 
   function renderDiffContent(data) {
@@ -1296,15 +1165,24 @@
   function renderSimpleMarkdown(md) {
     if (!md) return '';
     let out = escapeHtml(md);
-    // 代码块 ```code```
     out = out.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    // 行内代码 `code`
     out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
-    // 加粗 **bold**
     out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    // 换行
     out = out.replace(/\n/g, '<br/>');
     return out;
+  }
+
+  function copyTextFromElement(btn) {
+    const turn = btn.closest('.agent-turn');
+    if (turn) {
+      const msg = turn.querySelector('.turn-message');
+      if (msg) {
+        navigator.clipboard.writeText(msg.innerText).then(() => {
+          btn.innerText = '✓ 已复制';
+          setTimeout(() => btn.innerText = '📋 复制回答', 2000);
+        });
+      }
+    }
   }
 
   function promptManualConnect() {
@@ -1316,7 +1194,6 @@
     }
   }
 
-  // 页面加载启动
   window.addEventListener('DOMContentLoaded', initWebSocket);
 </script>
 </body>

@@ -161,6 +161,14 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 			continue
 		}
 
+		// 过滤底层 CLI 引擎噪音（如启动日志、内部模型获取报错、JSON dump 等）
+		if strings.HasPrefix(trimmed, "Reading additional input") ||
+			strings.Contains(trimmed, "codex_models_manager") ||
+			strings.Contains(trimmed, "failed to refresh available models") ||
+			(strings.HasPrefix(trimmed, "{") && strings.Contains(trimmed, "gpt-")) {
+			continue
+		}
+
 		// 文本正则匹配审批
 		if d.approvalRegex.MatchString(trimmed) {
 			events = append(events, &AgentEvent{

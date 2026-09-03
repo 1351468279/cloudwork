@@ -5,6 +5,16 @@ import '../models/device_pair.dart';
 import '../services/websocket_client.dart';
 import 'scanner_screen.dart';
 
+// 单步工具数据
+class ToolStepData {
+  final String command;
+  String output;
+  bool isRunning;
+  bool isSuccess;
+  bool isExpanded;
+  ToolStepData(this.command, {this.output = '', this.isRunning = true, this.isSuccess = false, this.isExpanded = false});
+}
+
 // 消息项基类
 abstract class ChatItem {}
 
@@ -14,34 +24,34 @@ class UserChatItem extends ChatItem {
   UserChatItem(this.text, this.time);
 }
 
-class AgentChatItem extends ChatItem {
+// Antigravity 2.0 单轮统一回复容器
+class AgentTurnItem extends ChatItem {
   final String agent;
-  final String text;
+  String? thinkingText;
+  bool isThinkingPulsing;
+  bool isThinkingExpanded;
+  final List<ToolStepData> tools = [];
+  AgentEvent? pendingApproval;
+  bool isApprovalDecided;
+  bool wasApprovalAllowed;
+  String answerText;
+  String? statsText;
+  bool isCompleted;
   final DateTime time;
-  AgentChatItem(this.agent, this.text, this.time);
-}
 
-class ThinkingChatItem extends ChatItem {
-  String text;
-  bool isPulsing;
-  bool isExpanded;
-  ThinkingChatItem(this.text, {this.isPulsing = true, this.isExpanded = true});
-}
-
-class ToolChatItem extends ChatItem {
-  final String command;
-  String output;
-  bool isRunning;
-  bool isSuccess;
-  bool isExpanded;
-  ToolChatItem(this.command, {this.output = '', this.isRunning = true, this.isSuccess = false, this.isExpanded = false});
-}
-
-class ApprovalChatItem extends ChatItem {
-  final AgentEvent event;
-  bool isDecided;
-  bool wasAllowed;
-  ApprovalChatItem(this.event, {this.isDecided = false, this.wasAllowed = false});
+  AgentTurnItem(
+    this.agent,
+    this.time, {
+    this.thinkingText,
+    this.isThinkingPulsing = false,
+    this.isThinkingExpanded = false,
+    this.pendingApproval,
+    this.isApprovalDecided = false,
+    this.wasApprovalAllowed = false,
+    this.answerText = '',
+    this.statsText,
+    this.isCompleted = false,
+  });
 }
 
 class CommanderScreen extends StatefulWidget {
@@ -60,14 +70,8 @@ class _CommanderScreenState extends State<CommanderScreen> {
   String _selectedAgent = 'claude';
   final List<ChatItem> _chatItems = [];
   bool _showSlashMenu = false;
-  String _activeTimer = '00:00';
-  int _seconds = 0;
   bool _isExecuting = false;
-  ThinkingChatItem? _currentThinking;
-  ToolChatItem? _currentTool;
-
-  String _gitDiffStat = '';
-  String _gitDiffBody = '';
+  AgentTurnItem? _currentTurn;
 
   @override
   void initState() {
@@ -75,11 +79,12 @@ class _CommanderScreenState extends State<CommanderScreen> {
     _wsService.addListener(_onWsStateChange);
     _wsService.eventStream.listen(_onAgentEvent);
 
-    // 欢迎气泡
-    _chatItems.add(AgentChatItem(
+    // 欢迎卡片
+    _chatItems.add(AgentTurnItem(
       'CLOUDFLOW',
-      '👋 你好！我是你的 CloudWork 远程协同指挥官。你可以随时在下方输入指令或 / 快捷命令，我将无感调度你家中电脑的 Claude Code / Codex 为你编写代码并自动运行测试。',
       DateTime.now(),
+      answerText: '👋 你好！我是你的 CloudWork 远程协同中心。你可以随时在下方输入编程需求或 / 快捷指令，我将调度你电脑本地的 Claude Code / Codex 为你编写代码并自动运行测试。',
+      isCompleted: true,
     ));
   }
 
@@ -98,53 +103,57 @@ class _CommanderScreenState extends State<CommanderScreen> {
 
   void _onAgentEvent(AgentEvent ev) {
     setState(() {
+      if (_currentTurn == null) {
+        _currentTurn = AgentTurnItem(_selectedAgent.toUpperCase(), DateTime.now());
+        _chatItems.add(_currentTurn!);
+      }
+
+      final turn = _currentTurn!;
+
       if (ev.type == 'thinking') {
-        if (_currentThinking == null) {
-          _currentThinking = ThinkingChatItem(ev.message ?? '正在深度思考与规划...');
-          _chatItems.add(_currentThinking!);
-        } else {
-          _currentThinking!.text += '\n${ev.message ?? ''}';
-        }
+        turn.thinkingText = (turn.thinkingText ?? '') + (ev.message ?? '');
+        turn.isThinkingPulsing = true;
       } else if (ev.type == 'tool_call_start') {
-        _finishThinking();
+        turn.isThinkingPulsing = false;
+        turn.isThinkingExpanded = false;
         final cmd = ev.message ?? ev.toolCall?.command ?? '执行命令';
-        _currentTool = ToolChatItem(cmd);
-        _chatItems.add(_currentTool!);
+        turn.tools.add(ToolStepData(cmd));
       } else if (ev.type == 'tool_call_end') {
-        if (_currentTool != null) {
-          _currentTool!.isRunning = false;
-          _currentTool!.isSuccess = true;
-          _currentTool!.output = ev.rawOutput ?? '';
-          _currentTool = null;
+        if (turn.tools.isNotEmpty) {
+          final last = turn.tools.last;
+          last.isRunning = false;
+          last.isSuccess = true;
+          last.output = ev.rawOutput ?? '';
         }
       } else if (ev.type == 'tool_call_request') {
-        _finishThinking();
-        _chatItems.add(ApprovalChatItem(ev));
+        turn.pendingApproval = ev;
       } else if (ev.type == 'agent_message') {
-        _finishThinking();
-        _chatItems.add(AgentChatItem(_selectedAgent.toUpperCase(), ev.message ?? '', DateTime.now()));
+        turn.isThinkingPulsing = false;
+        turn.isThinkingExpanded = false;
+        turn.answerText += (ev.message ?? '');
       } else if (ev.status == 'completed' || ev.type == 'session_finished') {
-        _finishThinking();
+        turn.isThinkingPulsing = false;
+        turn.isThinkingExpanded = false;
+        turn.isCompleted = true;
+        turn.statsText = (ev.message ?? '').replaceAll('✅', '').trim();
         _isExecuting = false;
-        _chatItems.add(AgentChatItem('CLOUDFLOW', '✅ 任务执行完毕！${ev.message ?? ''}', DateTime.now()));
-      } else if (ev.type == 'std_output' && ev.message != null && ev.message!.isNotEmpty) {
-        if (_currentThinking != null) {
-          _currentThinking!.text += '\n${ev.message}';
-        } else {
-          _chatItems.add(AgentChatItem(_selectedAgent.toUpperCase(), ev.message!, DateTime.now()));
+        _currentTurn = null;
+      } else if (ev.type == 'std_output' && ev.message != null) {
+        final msg = ev.message!.trim();
+        // 过滤 CLI 启动与框架底层噪音
+        if (msg.startsWith('Reading additional input') ||
+            msg.contains('codex_models_manager') ||
+            msg.contains('failed to refresh available models') ||
+            (msg.startsWith('{') && msg.contains('gpt-'))) {
+          return;
+        }
+        if (turn.answerText.isEmpty) {
+          turn.answerText += msg;
         }
       }
     });
 
     _scrollToBottom();
-  }
-
-  void _finishThinking() {
-    if (_currentThinking != null) {
-      _currentThinking!.isPulsing = false;
-      _currentThinking!.isExpanded = false;
-      _currentThinking = null;
-    }
   }
 
   void _scrollToBottom() {
@@ -177,21 +186,24 @@ class _CommanderScreenState extends State<CommanderScreen> {
       _promptCtrl.clear();
       _showSlashMenu = false;
       _isExecuting = true;
+      _currentTurn = AgentTurnItem(_selectedAgent.toUpperCase(), DateTime.now());
+      _chatItems.add(_currentTurn!);
     });
 
     _wsService.startSession(_selectedAgent, prompt, '.');
     _scrollToBottom();
   }
 
-  void _decideApproval(ApprovalChatItem item, bool allow) {
+  void _decideApproval(AgentTurnItem turn, bool allow) {
+    if (turn.pendingApproval == null) return;
     if (allow) {
-      _wsService.approveTool(item.event.sessionId);
+      _wsService.approveTool(turn.pendingApproval!.sessionId);
     } else {
-      _wsService.rejectTool(item.event.sessionId);
+      _wsService.rejectTool(turn.pendingApproval!.sessionId);
     }
     setState(() {
-      item.isDecided = true;
-      item.wasAllowed = allow;
+      turn.isApprovalDecided = true;
+      turn.wasApprovalAllowed = allow;
     });
   }
 
@@ -344,209 +356,209 @@ class _CommanderScreenState extends State<CommanderScreen> {
           ),
         ),
       );
-    } else if (item is AgentChatItem) {
+    } else if (item is AgentTurnItem) {
       return Container(
         margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF14181F),
+          border: Border.all(color: const Color(0xFF2D333B)),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(4),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 头部
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFFA371F7), Color(0xFF58A6FF)]),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: const Center(child: Text('AI', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
-                ),
-                const SizedBox(width: 6),
-                Text(item.agent, style: const TextStyle(color: Color(0xFF8B949E), fontSize: 11, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF161B22),
-                border: Border.all(color: const Color(0xFF30363D)),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              child: SelectableText(item.text, style: const TextStyle(color: Color(0xFFE6EDF3), fontSize: 13, height: 1.5)),
-            ),
-          ],
-        ),
-      );
-    } else if (item is ThinkingChatItem) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: const Color(0x14A371F7),
-          border: Border.all(color: const Color(0x40A371F7)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () => setState(() => item.isExpanded = !item.isExpanded),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Row(
                   children: [
-                    Text(item.isPulsing ? '💭 深度思考与规划中...' : '💭 深度规划已就绪', style: const TextStyle(color: Color(0xFFD2A8FF), fontSize: 12, fontWeight: FontWeight.w600)),
-                    Icon(item.isExpanded ? Icons.expand_less : Icons.expand_more, size: 16, color: const Color(0xFFD2A8FF)),
-                  ],
-                ),
-              ),
-            ),
-            if (item.isExpanded)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Color(0x40000000),
-                  border: Border(top: BorderSide(color: Color(0x26A371F7))),
-                ),
-                child: Text(item.text, style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFFBC8CFF))),
-              ),
-          ],
-        ),
-      );
-    } else if (item is ToolChatItem) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF11151C),
-          border: Border.all(color: const Color(0xFF30363D)),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () => setState(() => item.isExpanded = !item.isExpanded),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.terminal, size: 14, color: Color(0xFF79C0FF)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(item.command, style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Color(0xFF79C0FF)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ),
-                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      width: 18,
+                      height: 18,
                       decoration: BoxDecoration(
-                        color: item.isRunning ? const Color(0x3358A6FF) : const Color(0x333FB950),
-                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(colors: [Color(0xFFA371F7), Color(0xFF58A6FF)]),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(item.isRunning ? '运行中...' : '✓ 完成', style: TextStyle(color: item.isRunning ? const Color(0xFF58A6FF) : const Color(0xFF3FB950), fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: const Center(child: Text('AI', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))),
                     ),
+                    const SizedBox(width: 6),
+                    Text(item.agent, style: const TextStyle(color: Color(0xFF8B949E), fontSize: 11, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: item.isCompleted ? const Color(0x263FB950) : const Color(0x2658A6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    item.isCompleted ? '完成' : '运行中',
+                    style: TextStyle(color: item.isCompleted ? const Color(0xFF3FB950) : const Color(0xFF58A6FF), fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // 1. 思考过程
+            if (item.thinkingText != null && item.thinkingText!.isNotEmpty) ...[
+              InkWell(
+                onTap: () => setState(() => item.isThinkingExpanded = !item.isThinkingExpanded),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0x14A371F7),
+                    border: Border.all(color: const Color(0x33A371F7)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(item.isCompleted ? '💭 深度规划已就绪' : '💭 深度思考与规划中...', style: const TextStyle(color: Color(0xFFD2A8FF), fontSize: 11)),
+                      Icon(item.isThinkingExpanded ? Icons.expand_less : Icons.expand_more, size: 14, color: const Color(0xFFD2A8FF)),
+                    ],
+                  ),
+                ),
+              ),
+              if (item.isThinkingExpanded)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0x40000000),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(item.thinkingText!, style: const TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFFBC8CFF))),
+                ),
+              const SizedBox(height: 6),
+            ],
+
+            // 2. 工具调用清单
+            for (var tool in item.tools) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D1117),
+                  border: Border.all(color: const Color(0xFF2D333B)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: () => setState(() => tool.isExpanded = !tool.isExpanded),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.terminal, size: 12, color: Color(0xFF58A6FF)),
+                            const SizedBox(width: 6),
+                            Expanded(child: Text(tool.command, style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFF79C0FF)), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            Text(tool.isRunning ? '运行中...' : '✓ 完成', style: TextStyle(color: tool.isRunning ? const Color(0xFF58A6FF) : const Color(0xFF3FB950), fontSize: 9)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (tool.isExpanded && tool.output.isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF090D13),
+                          border: Border(top: BorderSide(color: Color(0xFF2D333B))),
+                        ),
+                        child: SelectableText(tool.output, style: const TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF8B949E))),
+                      ),
                   ],
                 ),
               ),
-            ),
-            if (item.isExpanded && item.output.isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0D1117),
-                  border: Border(top: BorderSide(color: Color(0xFF30363D))),
-                ),
-                child: SelectableText(item.output, style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFF8B949E))),
-              ),
-          ],
-        ),
-      );
-    } else if (item is ApprovalChatItem) {
-      if (item.isDecided) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: item.wasAllowed ? const Color(0x263FB950) : const Color(0x26F85149),
-            border: Border.all(color: item.wasAllowed ? const Color(0x663FB950) : const Color(0x66F85149)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            item.wasAllowed ? '✅ 手机端已批准执行命令' : '❌ 手机端已拒绝操作',
-            style: TextStyle(color: item.wasAllowed ? const Color(0xFF3FB950) : const Color(0xFFF85149), fontSize: 11, fontWeight: FontWeight.bold),
-          ),
-        );
-      }
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0x1AD29922),
-          border: Border.all(color: const Color(0xFFD29922), width: 1.5),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(color: const Color(0xFFD29922).withOpacity(0.2), blurRadius: 16),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Color(0xFFD29922), size: 18),
-                SizedBox(width: 6),
-                Text('⚠️ 权限审批请求', style: TextStyle(color: Color(0xFFD29922), fontSize: 13, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(item.event.message ?? 'Agent 申请执行以下敏感操作，请确认：', style: const TextStyle(color: Color(0xFF8B949E), fontSize: 12)),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0D1117),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF30363D)),
-              ),
-              child: SelectableText(
-                item.event.toolCall?.command ?? item.event.toolCall?.description ?? '未知命令',
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Color(0xFF7EE787)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _decideApproval(item, false),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFF85149),
-                      side: const BorderSide(color: Color(0xFFDA3633)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('❌ 拒绝'),
+            ],
+
+            // 3. 权限审批
+            if (item.pendingApproval != null) ...[
+              if (item.isApprovalDecided)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: item.wasApprovalAllowed ? const Color(0x263FB950) : const Color(0x26F85149),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    item.wasApprovalAllowed ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作',
+                    style: TextStyle(color: item.wasApprovalAllowed ? const Color(0xFF3FB950) : const Color(0xFFF85149), fontSize: 11),
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1AD29922),
+                    border: Border.all(color: const Color(0xFFD29922)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('⚠️ 权限审批请求', style: TextStyle(color: Color(0xFFD29922), fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(item.pendingApproval!.toolCall?.command ?? '', style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFF7EE787))),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => _decideApproval(item, false),
+                              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFF85149), side: const BorderSide(color: Color(0xFFDA3633))),
+                              child: const Text('❌ 拒绝', style: TextStyle(fontSize: 11)),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => _decideApproval(item, true),
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF238636), foregroundColor: Colors.white),
+                              child: const Text('✅ 允许', style: TextStyle(fontSize: 11)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _decideApproval(item, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF238636),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('✅ 允许执行'),
+              const SizedBox(height: 6),
+            ],
+
+            // 4. 正式回答正文
+            if (item.answerText.isNotEmpty)
+              SelectableText(item.answerText, style: const TextStyle(color: Color(0xFFE6EDF3), fontSize: 13, height: 1.5)),
+
+            // 5. 底部浅灰微型状态与复制
+            if (item.isCompleted) ...[
+              const Divider(color: Color(0x332D333B), height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item.statsText != null && item.statsText!.isNotEmpty ? item.statsText! : '任务执行完成',
+                    style: const TextStyle(color: Color(0xFF6E7681), fontSize: 10),
                   ),
-                ),
-              ],
-            ),
+                  InkWell(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: item.answerText));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已复制回答到剪贴板'), duration: Duration(seconds: 1)));
+                    },
+                    child: const Text('📋 复制', style: TextStyle(color: Color(0xFF8B949E), fontSize: 10)),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       );
@@ -561,7 +573,6 @@ class _CommanderScreenState extends State<CommanderScreen> {
         color: const Color(0xFF1C2128),
         border: Border.all(color: const Color(0xFF30363D)),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 16)],
       ),
       child: Column(
         children: [
@@ -598,7 +609,7 @@ class _CommanderScreenState extends State<CommanderScreen> {
 
   Widget _buildPromptChips() {
     return Container(
-      height: 38,
+      height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -618,7 +629,7 @@ class _CommanderScreenState extends State<CommanderScreen> {
       padding: const EdgeInsets.only(right: 8),
       child: ActionChip(
         backgroundColor: const Color(0xFF1C2128),
-        side: const BorderSide(color: Color(0xFF30363D)),
+        side: const BorderSide(color: const Color(0xFF30363D)),
         label: Text(label, style: const TextStyle(color: Color(0xFFC9D1D9), fontSize: 11)),
         onPressed: onTap ?? () => _dispatchTask(prompt),
       ),
@@ -664,8 +675,8 @@ class _CommanderScreenState extends State<CommanderScreen> {
           ),
           const SizedBox(width: 8),
           SizedBox(
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             child: ElevatedButton(
               onPressed: () => _dispatchTask(_promptCtrl.text),
               style: ElevatedButton.styleFrom(
@@ -674,7 +685,7 @@ class _CommanderScreenState extends State<CommanderScreen> {
                 padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Icon(Icons.send_rounded, size: 20),
+              child: const Icon(Icons.send_rounded, size: 18),
             ),
           ),
         ],
