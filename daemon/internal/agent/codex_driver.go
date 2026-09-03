@@ -100,14 +100,15 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 					itemType, _ := item["type"].(string)
 					if itemType == "command_execution" {
 						cmd, _ := item["command"].(string)
+						cleanCmd := prettifyCommand(cmd)
 						events = append(events, &AgentEvent{
 							AgentType: d.Type(),
 							Type:      EventToolCallStart,
 							Status:    StatusExecutingTool,
-							Message:   cmd,
+							Message:   cleanCmd,
 							ToolCall: &ToolCallPayload{
 								ToolName: "Bash",
-								Command:  cmd,
+								Command:  cleanCmd,
 							},
 							Timestamp: now,
 						})
@@ -130,11 +131,12 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 					} else if itemType == "command_execution" {
 						output, _ := item["aggregated_output"].(string)
 						cmd, _ := item["command"].(string)
+						cleanCmd := prettifyCommand(cmd)
 						events = append(events, &AgentEvent{
 							AgentType: d.Type(),
 							Type:      EventToolCallEnd,
 							Status:    StatusThinking,
-							Message:   cmd,
+							Message:   cleanCmd,
 							RawOutput: strings.TrimSpace(output),
 							Timestamp: now,
 						})
@@ -199,4 +201,20 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 	}
 
 	return events
+}
+
+func prettifyCommand(cmd string) string {
+	trimmed := strings.TrimSpace(cmd)
+	// 去除 powershell 冗长全路径与参数
+	rePs := regexp.MustCompile(`(?i)^"?[A-Z]:\\Windows\\System32\\WindowsPowerShell\\v1\.0\\powershell(\.exe)?"?\s+(-(NoProfile|NonInteractive|ExecutionPolicy\s+\w+|Command)\s+)*`)
+	if rePs.MatchString(trimmed) {
+		trimmed = rePs.ReplaceAllString(trimmed, "powershell ")
+	}
+	reCmd := regexp.MustCompile(`(?i)^"?[A-Z]:\\Windows\\System32\\cmd(\.exe)?"?\s+(/c\s+)*`)
+	if reCmd.MatchString(trimmed) {
+		trimmed = reCmd.ReplaceAllString(trimmed, "cmd ")
+	}
+	// 去除多余包装双引号
+	trimmed = strings.Trim(trimmed, `"'`)
+	return trimmed
 }

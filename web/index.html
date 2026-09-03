@@ -6,20 +6,21 @@
   <title>CloudWork 掌上指挥官 (Antigravity 2.0)</title>
   <style>
     :root {
-      --bg: #090d13;
-      --card-bg: #14181f;
-      --card-inner: #0d1117;
-      --border: #2d333b;
-      --border-focus: #58a6ff;
+      --bg: #101216;
+      --card-bg: #161920;
+      --card-inner: #0e1014;
+      --border: #242933;
+      --border-subtle: #1e222b;
       --primary: #58a6ff;
-      --primary-hover: #1f6feb;
-      --success: #238636;
-      --danger: #da3633;
+      --primary-glow: rgba(88, 166, 255, 0.2);
+      --success: #3fb950;
+      --danger: #f85149;
       --warning: #d29922;
-      --purple: #a371f7;
-      --text: #c9d1d9;
+      --purple: #bc8cff;
+      --text: #e6edf3;
       --text-muted: #8b949e;
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --text-dim: #656d76;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -29,217 +30,181 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
     }
-    .app-container {
-      max-width: 580px;
+    .app-viewport {
+      max-width: 640px;
       margin: 0 auto;
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: var(--card-bg);
       position: relative;
-    }
-    @media (min-width: 620px) {
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-      }
-      .app-container {
-        height: 96vh;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.85);
-        overflow: hidden;
-      }
+      background: var(--bg);
     }
 
-    /* 顶部导航 */
-    .header {
-      padding: 12px 16px;
-      background: #11151c;
-      border-bottom: 1px solid var(--border);
+    /* 1. Antigravity 2.0 移动顶栏 */
+    .ag-header {
+      height: 52px;
+      padding: 0 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      z-index: 10;
+      gap: 12px;
+      z-index: 20;
+      flex-shrink: 0;
     }
-    .brand {
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
+      gap: 12px;
+      overflow: hidden;
     }
-    .brand span {
-      background: linear-gradient(90deg, #58a6ff, #bc8cff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 18px;
       cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
     }
-    .status-badge.connected {
-      background: rgba(35, 134, 54, 0.2);
-      color: #3fb950;
-      border: 1px solid rgba(46, 160, 67, 0.4);
+    .header-title-box {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .status-badge.disconnected {
-      background: rgba(218, 54, 51, 0.2);
-      color: #f85149;
-      border: 1px solid rgba(218, 54, 51, 0.4);
+    .header-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
     }
-    .status-dot {
+    .header-status-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status-dot-mini {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: currentColor;
+      background: #3fb950;
+      box-shadow: 0 0 6px rgba(63, 185, 80, 0.6);
     }
-
-    .agent-pill {
-      background: #1f242c;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .diff-badge-btn {
+      background: #1c2128;
       border: 1px solid var(--border);
-      color: #fff;
+      color: var(--text);
       font-size: 11px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 8px;
-      outline: none;
-      cursor: pointer;
-    }
-    .diff-btn {
-      background: #1f242c;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 12px;
       padding: 4px 8px;
       border-radius: 8px;
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 4px;
     }
-    .diff-btn:hover { color: #fff; border-color: var(--primary); }
+    .avatar-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #d12574;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
 
-    /* 对话流主容器 */
-    .chat-timeline {
+    /* 2. 对话时间线 */
+    .ag-timeline {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      background: var(--bg);
+      gap: 18px;
       scroll-behavior: smooth;
     }
-    .chat-timeline::-webkit-scrollbar { width: 5px; }
-    .chat-timeline::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
+    .ag-timeline::-webkit-scrollbar { width: 4px; }
+    .ag-timeline::-webkit-scrollbar-thumb { background: #242933; border-radius: 2px; }
 
-    /* 用户气泡 */
-    .bubble-user {
+    /* 用户气泡：如截图中的简洁圆角深灰底 */
+    .user-bubble {
       align-self: flex-end;
       max-width: 86%;
-      background: linear-gradient(135deg, #1f6feb, #1158c7);
+      background: #21262d;
       color: #fff;
       padding: 10px 14px;
-      border-radius: 16px 16px 4px 16px;
+      border-radius: 18px 18px 4px 18px;
       font-size: 14px;
       line-height: 1.5;
-      box-shadow: 0 4px 12px rgba(31, 111, 235, 0.25);
       word-break: break-word;
+      border: 1px solid rgba(255, 255, 255, 0.04);
     }
     .bubble-time {
       font-size: 10px;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-dim);
       margin-top: 4px;
       text-align: right;
     }
 
-    /* Antigravity 2.0 单轮统一回复容器 */
+    /* Agent 消息区块 */
     .agent-turn {
       align-self: flex-start;
-      max-width: 98%;
       width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px 16px 16px 16px;
-      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      animation: fadeIn 0.2s ease-out;
+      animation: fadeIn 0.15s ease-out;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .turn-header {
+    .agent-meta {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 8px;
       font-size: 11px;
-      color: var(--text-muted);
       font-weight: 600;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
-      padding-bottom: 6px;
+      color: var(--text-muted);
     }
-    .turn-author {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .agent-avatar {
-      width: 20px;
-      height: 20px;
-      border-radius: 5px;
+    .agent-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
       background: linear-gradient(135deg, #a371f7, #58a6ff);
+      color: #fff;
+      font-size: 9px;
+      font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
-      color: #fff;
-      font-weight: bold;
-    }
-    .turn-status-tag {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 6px;
-    }
-    .turn-status-tag.running {
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff;
-    }
-    .turn-status-tag.done {
-      background: rgba(35, 134, 54, 0.15);
-      color: #3fb950;
     }
 
-    /* 1. 思考折叠条 */
-    .turn-thinking {
-      background: rgba(163, 113, 247, 0.08);
-      border: 1px solid rgba(163, 113, 247, 0.25);
+    /* 思考折叠条 */
+    .thinking-accordion {
+      background: rgba(188, 140, 255, 0.08);
+      border: 1px solid rgba(188, 140, 255, 0.2);
       border-radius: 8px;
       overflow: hidden;
       margin: 2px 0;
     }
-    .thinking-pill {
+    .thinking-header {
       padding: 6px 10px;
       display: flex;
       align-items: center;
@@ -248,97 +213,157 @@
       font-size: 11px;
       color: #d2a8ff;
     }
-    .thinking-content {
+    .thinking-body {
       display: none;
       padding: 8px 10px;
       font-family: var(--font-mono);
       font-size: 11px;
       color: #bc8cff;
-      line-height: 1.4;
       background: rgba(0, 0, 0, 0.25);
-      border-top: 1px solid rgba(163, 113, 247, 0.15);
-      max-height: 160px;
+      border-top: 1px solid rgba(188, 140, 255, 0.15);
+      max-height: 150px;
       overflow-y: auto;
       white-space: pre-wrap;
     }
-    .turn-thinking.expanded .thinking-content { display: block; }
+    .thinking-accordion.expanded .thinking-body { display: block; }
 
-    /* 2. 工具步骤列表 */
-    .turn-tools {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin: 2px 0;
-    }
-    .tool-step {
-      background: #0d1117;
+    /* 智能折叠步骤清单（解决15个胶囊霸屏的核心） */
+    .steps-accordion {
+      background: #161920;
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
+      margin: 2px 0;
     }
-    .tool-step-header {
-      padding: 6px 10px;
+    .steps-header {
+      padding: 7px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      gap: 6px;
-      font-size: 11px;
+      font-size: 12px;
+      color: #79c0ff;
     }
-    .tool-step-cmd {
+    .steps-header:hover { background: #1c212b; }
+    .steps-body {
+      display: none;
+      padding: 8px 12px;
+      background: #0e1014;
+      border-top: 1px solid var(--border);
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .steps-accordion.expanded .steps-body { display: flex; }
+    .step-item {
       font-family: var(--font-mono);
+      font-size: 11px;
+      color: #8b949e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.25);
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-cmd {
       color: #79c0ff;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       flex: 1;
     }
-    .tool-step-out {
-      display: none;
-      padding: 8px 10px;
-      background: #090d13;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #8b949e;
-      line-height: 1.4;
-      max-height: 160px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-    .tool-step.expanded .tool-step-out { display: block; }
 
-    /* 3. 正式回答文本 */
-    .turn-message {
+    /* 正式 Markdown 回复文本 */
+    .agent-body {
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
       color: #e6edf3;
       word-break: break-word;
-      margin-top: 2px;
     }
-    .turn-message p { margin-bottom: 8px; }
-    .turn-message p:last-child { margin-bottom: 0; }
-    .turn-message pre {
-      background: var(--card-inner);
+    .agent-body p { margin-bottom: 10px; }
+    .agent-body p:last-child { margin-bottom: 0; }
+    .agent-body code {
+      background: rgba(110, 118, 129, 0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #ffc978;
+    }
+    .agent-body pre {
+      background: #0e1014;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 10px;
       font-family: var(--font-mono);
       font-size: 12px;
       overflow-x: auto;
-      margin: 6px 0;
+      margin: 8px 0;
       color: #7ee787;
     }
-    .turn-message code {
-      background: rgba(110, 118, 129, 0.2);
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
+
+    /* 代码变更卡片（如截图中的 5 files changed +1912 -1183 > Review） */
+    .files-changed-card {
+      background: #161920;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: all 0.2s;
+    }
+    .files-changed-card:hover { border-color: var(--primary); }
+    .files-stat {
       font-size: 12px;
+      font-weight: 500;
+      color: #fff;
+    }
+    .files-stat .add { color: #3fb950; font-weight: bold; }
+    .files-stat .del { color: #f85149; font-weight: bold; }
+    .btn-review-card {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
-    /* 4. 行内审批卡片 */
-    .turn-approval {
+    /* 底部操作反馈栏 (👍 👎 📋 复制 + Token 信息) */
+    .turn-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .action-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .icon-action-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+    /* 行内审批卡片 */
+    .approval-card {
       background: rgba(210, 153, 34, 0.08);
       border: 1.5px solid var(--warning);
       border-radius: 12px;
@@ -346,115 +371,95 @@
       margin: 4px 0;
     }
     .approval-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--warning);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
+      font-size: 12px; font-weight: 700; color: var(--warning); margin-bottom: 6px;
     }
     .approval-cmd {
-      background: var(--card-inner);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #7ee787;
-      margin-bottom: 10px;
-      white-space: pre-wrap;
-      word-break: break-all;
+      background: #0e1014; border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px; font-family: var(--font-mono);
+      font-size: 11px; color: #7ee787; margin-bottom: 10px; word-break: break-all;
     }
-    .approval-actions { display: flex; gap: 8px; }
-    .btn-reject {
+    .approval-btns { display: flex; gap: 8px; }
+    .btn-app-reject {
       flex: 1; height: 38px; background: transparent; border: 1.5px solid var(--danger);
       color: #f85149; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
-    .btn-approve {
+    .btn-app-allow {
       flex: 1; height: 38px; background: var(--success); border: none;
       color: #fff; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
-    .approval-done {
-      font-size: 11px; padding: 4px 8px; border-radius: 6px;
-      background: rgba(35, 134, 54, 0.2); color: #3fb950; display: inline-block;
-    }
 
-    /* 5. 底部浅灰统计行 (Antigravity Footer) */
-    .turn-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 6px;
-      border-top: 1px solid rgba(48, 54, 61, 0.3);
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .turn-copy-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .turn-copy-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
-    /* 快捷指令芯片栏 */
-    .chips-bar {
-      padding: 8px 14px;
-      background: #11151c;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    .chips-bar::-webkit-scrollbar { display: none; }
-    .prompt-chip {
+    /* 3. 悬浮任务状态条 (Floating Running Tasks Bar 如截图中的 2 tasks running ^) */
+    .floating-task-bar {
+      position: absolute;
+      bottom: 84px;
+      left: 16px;
+      right: 16px;
       background: #1c2128;
       border: 1px solid var(--border);
-      color: #c9d1d9;
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 16px;
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       cursor: pointer;
-      flex-shrink: 0;
+      z-index: 15;
+      animation: slideUp 0.2s ease-out;
     }
-    .prompt-chip:hover { border-color: var(--primary); color: #fff; }
-
-    /* 底部智能输入栏 */
-    .input-bar {
-      padding: 10px 14px;
-      background: var(--card-bg);
-      border-top: 1px solid var(--border);
+    .floating-task-bar.active { display: flex; }
+    .task-bar-left {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 8px;
+      font-size: 12px;
+      color: #fff;
+    }
+    .task-spinner {
+      color: #58a6ff;
+      animation: blink 1s infinite alternate;
+    }
+    @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
+    .task-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-task-stop {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--danger);
+      border: none;
+      color: #fff;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 4. Antigravity 2.0 签名集成式输入岛 (Integrated Input Island) */
+    .input-island-container {
+      padding: 8px 16px 14px 16px;
+      background: var(--bg);
+      flex-shrink: 0;
       position: relative;
     }
-    .input-wrapper {
-      flex: 1;
-      background: var(--card-inner);
+    .input-island {
+      background: #181c24;
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 8px 12px;
+      border-radius: 18px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 8px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .input-wrapper:focus-within {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+    .input-island:focus-within {
+      border-color: #388bfd;
+      box-shadow: 0 0 0 2px var(--primary-glow);
     }
-    .input-hint {
-      font-size: 10px;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-    }
-    .smart-textarea {
+    .island-textarea {
       width: 100%;
       background: transparent;
       border: none;
@@ -467,30 +472,99 @@
       min-height: 24px;
       font-family: inherit;
     }
-    .smart-textarea::placeholder { color: #484f58; }
-
-    .btn-send {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: var(--primary);
+    .island-textarea::placeholder {
+      color: var(--text-dim);
+    }
+    .island-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2px;
+    }
+    .island-left-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-plus {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #242933;
       border: none;
-      color: #090d13;
-      font-size: 18px;
+      color: var(--text-muted);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .btn-plus:hover { color: #fff; background: #2f3642; }
+
+    .agent-pill-select {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: #c9d1d9;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-send-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #242933;
+      border: none;
+      color: var(--text-dim);
+      font-size: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-send-circle.ready {
+      background: var(--primary);
+      color: #0e1014;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+    .btn-send-circle.running {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* 常用芯片栏 (点击 + 展开或默认收起) */
+    .chips-popover {
+      display: none;
+      gap: 6px;
+      padding: 6px 0;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .chips-popover.active { display: flex; }
+    .chips-popover::-webkit-scrollbar { display: none; }
+    .quick-chip {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
       flex-shrink: 0;
     }
-    .btn-stop { background: var(--danger); color: #fff; }
+    .quick-chip:hover { color: #fff; border-color: var(--primary); }
 
     /* 斜杠指令浮层 */
-    .slash-popover {
+    .slash-menu {
       position: absolute;
-      bottom: 70px;
-      left: 14px;
-      right: 14px;
+      bottom: 84px;
+      left: 16px;
+      right: 16px;
       background: #1c2128;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -498,23 +572,23 @@
       display: none;
       flex-direction: column;
       overflow: hidden;
-      z-index: 20;
+      z-index: 30;
     }
-    .slash-popover.active { display: flex; }
-    .slash-item {
+    .slash-menu.active { display: flex; }
+    .slash-row {
       padding: 10px 14px;
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+      border-bottom: 1px solid rgba(48, 54, 61, 0.3);
     }
-    .slash-item:last-child { border-bottom: none; }
-    .slash-item:hover { background: #262c36; }
-    .slash-key { font-family: var(--font-mono); font-size: 13px; color: var(--primary); font-weight: 600; }
-    .slash-desc { font-size: 12px; color: var(--text-muted); }
+    .slash-row:last-child { border-bottom: none; }
+    .slash-row:hover { background: #262c36; }
+    .slash-cmd { font-family: var(--font-mono); font-size: 13px; color: var(--primary); font-weight: 600; }
+    .slash-hint { font-size: 12px; color: var(--text-muted); }
 
-    /* Diff 审查抽屉 */
+    /* 全屏 Diff 抽屉 */
     .drawer-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -527,7 +601,7 @@
     }
     .drawer-overlay.active { display: flex; }
     .drawer-card {
-      width: 100%; max-width: 540px; height: 90vh;
+      width: 100%; max-width: 600px; height: 92vh;
       background: #0d1117; border: 1px solid var(--border);
       border-radius: 20px; display: flex; flex-direction: column;
       overflow: hidden;
@@ -537,7 +611,7 @@
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
     }
-    .drawer-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .drawer-title { font-size: 14px; font-weight: 700; color: #fff; }
     .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
     .drawer-body {
       flex: 1; padding: 14px; overflow-y: auto;
@@ -551,99 +625,112 @@
 </head>
 <body>
 
-<div class="app-container">
-  <!-- 顶部导航 -->
-  <header class="header">
-    <div class="brand">
-      <span>⚡ CloudWork</span>
+<div class="app-viewport">
+  <!-- 1. Antigravity 2.0 原生移动顶栏 -->
+  <header class="ag-header">
+    <div class="header-left">
+      <button class="btn-back" onclick="location.reload()" title="刷新会话">←</button>
+      <div class="header-title-box">
+        <span class="header-title">CloudWork Remote Control</span>
+        <div class="header-status-sub">
+          <div class="status-dot-mini"></div>
+          <span id="headerStatusText">家中电脑已就绪</span>
+        </div>
+      </div>
     </div>
 
-    <div class="header-actions">
-      <select id="agentSelect" class="agent-pill">
-        <option value="claude">Claude Code</option>
-        <option value="codex">OpenAI Codex</option>
-        <option value="aider">Aider</option>
-        <option value="generic">通用 CLI</option>
-      </select>
-
-      <button class="diff-btn" onclick="openDiffDrawer()">
-        <span>📝 改动</span>
+    <div class="header-right">
+      <button class="diff-badge-btn" onclick="openDiffDrawer()">
+        <span>📝 Diff</span>
       </button>
-
-      <div id="connectionStatus" class="status-badge disconnected" onclick="promptManualConnect()">
-        <div class="status-dot"></div>
-        <span id="statusText">未连接</span>
-      </div>
+      <div class="avatar-circle" title="用户中心">M</div>
     </div>
   </header>
 
-  <!-- 对话时间线 -->
-  <main id="chatTimeline" class="chat-timeline">
+  <!-- 2. 主对话流画布 -->
+  <main id="agTimeline" class="ag-timeline">
     <!-- 欢迎卡片 -->
     <div class="agent-turn">
-      <div class="turn-header">
-        <div class="turn-author">
-          <div class="agent-avatar">AI</div>
-          <span>CloudWork 指挥官</span>
-        </div>
-        <span class="turn-status-tag done">就绪</span>
+      <div class="agent-meta">
+        <div class="agent-icon">AI</div>
+        <span>ANTIGRAVITY 2.0</span>
       </div>
-      <div class="turn-message">
+      <div class="agent-body">
         <p>👋 你好！我是你的 <strong>CloudWork 远程 Agent 协同中心</strong>。</p>
-        <p>你现在随时可以通过下方直接下达编程需求或 <code>/</code> 指令，我将调度你电脑本地的 <strong>Claude Code / Codex</strong> 编写代码、审查改动并自动运行测试。</p>
+        <p>支持无感调度你家中电脑的 <strong>OpenAI Codex / Claude Code</strong>。你可以随时在下方输入编程需求或 <code>/</code> 指令。</p>
       </div>
     </div>
   </main>
 
-  <!-- 斜杠指令快捷菜单 -->
-  <div id="slashPopover" class="slash-popover">
-    <div class="slash-item" onclick="insertSlash('/test')">
-      <span class="slash-key">/test</span>
-      <span class="slash-desc">自动运行所有单元测试并修复发现的问题</span>
+  <!-- 3. 悬浮任务状态条 (Running Tasks Bar) -->
+  <div id="floatingTaskBar" class="floating-task-bar" onclick="openTaskDrawer()">
+    <div class="task-bar-left">
+      <span class="task-spinner">●</span>
+      <span id="taskBarText">1 task running (00:00)</span>
     </div>
-    <div class="slash-item" onclick="insertSlash('/review')">
-      <span class="slash-key">/review</span>
-      <span class="slash-desc">详细审查当前项目未提交的代码变更</span>
-    </div>
-    <div class="slash-item" onclick="insertSlash('/commit')">
-      <span class="slash-key">/commit</span>
-      <span class="slash-desc">根据修改内容自动生成规范的 Git Commit 并提交</span>
-    </div>
-    <div class="slash-item" onclick="insertSlash('/clean')">
-      <span class="slash-key">/clean</span>
-      <span class="slash-desc">精简模块的多余代码、修复 Lint 与优化性能</span>
+    <div class="task-bar-right">
+      <span style="color: var(--text-dim); font-size: 11px;">^</span>
+      <button class="btn-task-stop" onclick="terminateSession(event)" title="终止任务">⏹</button>
     </div>
   </div>
 
-  <!-- 常用 Prompt 快捷芯片 -->
-  <div class="chips-bar">
-    <div class="prompt-chip" onclick="applyPrompt('运行测试并自动修复错误')">🧪 运行测试</div>
-    <div class="prompt-chip" onclick="applyPrompt('详细审查当前未提交的代码改动')">🔍 审查代码</div>
-    <div class="prompt-chip" onclick="applyPrompt('为当前功能补充清晰的文档与使用示例')">📝 补充文档</div>
-    <div class="prompt-chip" onclick="applyPrompt('精简未使用的代码与无用依赖')">🧹 代码精简</div>
-    <div class="prompt-chip" onclick="openDiffDrawer()">📁 审查 Git Diff</div>
+  <!-- 斜杠指令浮层 -->
+  <div id="slashMenu" class="slash-menu">
+    <div class="slash-row" onclick="insertSlash('/test')">
+      <span class="slash-cmd">/test</span>
+      <span class="slash-hint">自动运行所有单元测试并修复发现的问题</span>
+    </div>
+    <div class="slash-row" onclick="insertSlash('/review')">
+      <span class="slash-cmd">/review</span>
+      <span class="slash-hint">详细审查当前项目未提交的代码变更</span>
+    </div>
+    <div class="slash-row" onclick="insertSlash('/commit')">
+      <span class="slash-cmd">/commit</span>
+      <span class="slash-hint">根据修改内容自动生成规范的 Git Commit 并提交</span>
+    </div>
+    <div class="slash-row" onclick="insertSlash('/clean')">
+      <span class="slash-cmd">/clean</span>
+      <span class="slash-hint">精简模块的多余代码、修复 Lint 与优化性能</span>
+    </div>
   </div>
 
-  <!-- 底部智能输入栏 -->
-  <footer class="input-bar">
-    <div class="input-wrapper">
-      <div class="input-hint">
-        <span>输入 / 触发指令 · 凭据本地继承</span>
-        <span id="sessionTimer">00:00</span>
-      </div>
+  <!-- 4. Antigravity 2.0 签名集成式输入岛 -->
+  <footer class="input-island-container">
+    <!-- 快捷芯片折叠栏 -->
+    <div id="chipsPopover" class="chips-popover">
+      <div class="quick-chip" onclick="applyPrompt('运行测试并自动修复错误')">🧪 运行测试</div>
+      <div class="quick-chip" onclick="applyPrompt('详细审查当前未提交的代码改动')">🔍 审查代码</div>
+      <div class="quick-chip" onclick="applyPrompt('为当前功能补充清晰的文档')">📝 补充文档</div>
+      <div class="quick-chip" onclick="applyPrompt('精简未使用的代码与无用依赖')">🧹 代码精简</div>
+      <div class="quick-chip" onclick="openDiffDrawer()">📁 查看 Diff</div>
+    </div>
+
+    <div class="input-island">
       <textarea
         id="promptInput"
-        class="smart-textarea"
-        placeholder="输入要交给受控 Agent 自动执行的指令..."
+        class="island-textarea"
+        placeholder="Ask anything, @ to mention, / for actions"
         rows="1"
         onkeydown="handleKeyDown(event)"
         oninput="handleInput(event)"
       ></textarea>
-    </div>
 
-    <button id="sendBtn" class="btn-send" onclick="submitPrompt()" title="派发至电脑执行">
-      🚀
-    </button>
+      <div class="island-bottom-row">
+        <div class="island-left-actions">
+          <button class="btn-plus" onclick="toggleQuickChips()" title="快捷操作">+</button>
+          <select id="agentSelect" class="agent-pill-select">
+            <option value="codex">OpenAI Codex</option>
+            <option value="claude">Claude Code</option>
+            <option value="aider">Aider</option>
+            <option value="generic">Generic CLI</option>
+          </select>
+        </div>
+
+        <button id="sendBtn" class="btn-send-circle" onclick="submitPrompt()" title="发送">
+          <span id="sendIcon">→</span>
+        </button>
+      </div>
+    </div>
   </footer>
 </div>
 
@@ -665,9 +752,9 @@
   let activeSessionId = null;
   let timerInterval = null;
   let sessionSeconds = 0;
-  let currentTurn = null; // 当前正在运行的 AgentTurn 统一卡片
+  let currentTurn = null; // 当前 AgentTurn 对象
 
-  // 1. WebSocket 自动探测与重连
+  // 1. WebSocket 自动重连与自适应探测
   function getWsUrl() {
     if (window.location.protocol === 'file:') {
       return localStorage.getItem('cw_ws_url') || 'ws://127.0.0.1:9288/ws';
@@ -678,23 +765,27 @@
 
   function initWebSocket() {
     const wsUrl = getWsUrl();
-    updateConnectionUI(false, '正在连接...');
+    const statusText = document.getElementById('headerStatusText');
+    statusText.innerText = '正在连接家中电脑...';
 
     try {
       socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
-        updateConnectionUI(true, '已连电脑');
+        statusText.innerText = '家中电脑已连接';
+        document.querySelector('.status-dot-mini').style.background = '#3fb950';
         socket.send(JSON.stringify({ action: 'get_status', payload: {} }));
       };
 
       socket.onclose = () => {
-        updateConnectionUI(false, '连接断开(重试)');
+        statusText.innerText = '电脑连接已断开(重试中)';
+        document.querySelector('.status-dot-mini').style.background = '#f85149';
         setTimeout(initWebSocket, 3000);
       };
 
       socket.onerror = () => {
-        updateConnectionUI(false, '连接失败');
+        statusText.innerText = '连接异常';
+        document.querySelector('.status-dot-mini').style.background = '#f85149';
       };
 
       socket.onmessage = (event) => {
@@ -702,27 +793,15 @@
           const res = JSON.parse(event.data);
           handleServerMessage(res);
         } catch (e) {
-          console.error('Error parsing WS message:', e);
+          console.error('WS parse error:', e);
         }
       };
     } catch (e) {
-      updateConnectionUI(false, '连接异常');
       setTimeout(initWebSocket, 3000);
     }
   }
 
-  function updateConnectionUI(connected, text) {
-    const badge = document.getElementById('connectionStatus');
-    const statusText = document.getElementById('statusText');
-    if (connected) {
-      badge.className = 'status-badge connected';
-    } else {
-      badge.className = 'status-badge disconnected';
-    }
-    statusText.innerText = text;
-  }
-
-  // 2. 消息处理与 Antigravity 2.0 单轮回复架构
+  // 2. 消息流分发
   function handleServerMessage(res) {
     if (res.type === 'status' && res.data) {
       if (res.data.available_agents && res.data.available_agents.length > 0) {
@@ -730,8 +809,8 @@
         sel.innerHTML = '';
         res.data.available_agents.forEach(item => {
           const opt = document.createElement('option');
-          if (item.includes('(claude)')) opt.value = 'claude';
-          else if (item.includes('(codex)')) opt.value = 'codex';
+          if (item.includes('(codex)')) opt.value = 'codex';
+          else if (item.includes('(claude)')) opt.value = 'claude';
           else if (item.includes('(aider)')) opt.value = 'aider';
           else opt.value = 'generic';
           opt.innerText = item;
@@ -743,10 +822,10 @@
         if (res.success && res.data) {
           activeSessionId = res.data.id;
           startTimer();
-          setSendButtonState(true);
+          setTaskBarActive(true, '1 task running');
         } else {
-          alert('启动任务失败: ' + (res.error || '未知错误'));
-          setSendButtonState(false);
+          alert('任务启动失败: ' + (res.error || '未知错误'));
+          setTaskBarActive(false);
           if (currentTurn) {
             currentTurn.element.remove();
             currentTurn = null;
@@ -760,207 +839,231 @@
     }
   }
 
-  // 核心：所有事件统一归入当前单轮卡片，绝不产生多余独立气泡
+  // 核心：Antigravity 2.0 事件流处理
   function dispatchAgentEvent(ev) {
     if (!currentTurn) {
-      currentTurn = createAgentTurnContainer(document.getElementById('agentSelect').value);
+      currentTurn = createAgentTurn(document.getElementById('agentSelect').value);
     }
 
     const turn = currentTurn;
 
-    // 1. 思考过程 (Thinking)
+    // 思考过程
     if (ev.type === 'thinking') {
-      turn.showThinking(ev.message || '正在深度思考与架构规划...');
+      turn.updateThinking(ev.message || '正在深度思考与规划...');
     }
-    // 2. 工具调用开始 (ToolCallStart)
+    // 工具调用开始
     else if (ev.type === 'tool_call_start') {
-      turn.addToolStep(ev.message || ev.tool_call?.command || '执行命令');
+      const cleanCmd = prettifyCommand(ev.message || ev.tool_call?.command || '执行命令');
+      turn.addStep(cleanCmd);
+      updateTaskBarText(`Running ${cleanCmd}`);
     }
-    // 3. 工具调用完成 (ToolCallEnd)
+    // 工具调用结束
     else if (ev.type === 'tool_call_end') {
-      turn.finishLatestToolStep(ev.raw_output);
+      turn.finishLastStep(ev.raw_output);
     }
-    // 4. 权限审批 (ToolCallRequest)
+    // 权限审批
     else if (ev.type === 'tool_call_request') {
-      turn.showApprovalCard(ev);
+      turn.showApproval(ev);
     }
-    // 5. 正式文本回复 (AgentMessage)
+    // 正式回答
     else if (ev.type === 'agent_message') {
-      turn.appendMessageText(ev.message);
+      turn.appendMessage(ev.message);
     }
-    // 6. 任务结束
+    // 任务完成
     else if (ev.status === 'completed' || ev.type === 'session_finished') {
       turn.markCompleted(ev.message);
       stopTimer();
-      setSendButtonState(false);
+      setTaskBarActive(false);
       currentTurn = null;
+      // 触发一次 diff 状态探测
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
+      }
     }
-    // 7. 过滤噪音，普通合法文本流入思考或正文
+    // 杂音过滤网
     else if (ev.type === 'std_output' && ev.message) {
       const msg = ev.message.trim();
-      // 严密白名单过滤网：过滤一切底层 CLI 引擎杂音
       if (
         msg.startsWith('Reading additional input') ||
         msg.includes('codex_models_manager') ||
         msg.includes('failed to refresh available models') ||
         (msg.startsWith('{') && msg.includes('gpt-'))
       ) {
-        return; // 静默丢弃
+        return; // 静默丢弃引擎噪音
       }
-      turn.appendFallbackOutput(msg);
+      turn.appendMessage(msg);
     }
 
     scrollToBottom();
   }
 
-  // 3. Antigravity 2.0 单轮回复组件实现
-  function createAgentTurnContainer(agentType) {
-    const timeline = document.getElementById('chatTimeline');
+  // 3. Antigravity 2.0 单轮组件工厂
+  function createAgentTurn(agentType) {
+    const timeline = document.getElementById('agTimeline');
     const container = document.createElement('div');
     container.className = 'agent-turn';
 
-    const header = document.createElement('div');
-    header.className = 'turn-header';
-    header.innerHTML = `
-      <div class="turn-author">
-        <div class="agent-avatar">AI</div>
-        <span style="text-transform: uppercase;">${escapeHtml(agentType)}</span>
-      </div>
-      <span class="turn-status-tag running">思考中...</span>
+    const meta = document.createElement('div');
+    meta.className = 'agent-meta';
+    meta.innerHTML = `
+      <div class="agent-icon">AI</div>
+      <span style="text-transform: uppercase;">${escapeHtml(agentType)}</span>
     `;
 
-    // 思考栏
+    // 思考条
     const thinkingBox = document.createElement('div');
-    thinkingBox.className = 'turn-thinking';
+    thinkingBox.className = 'thinking-accordion';
     thinkingBox.style.display = 'none';
     thinkingBox.innerHTML = `
-      <div class="thinking-pill" onclick="this.parentElement.classList.toggle('expanded')">
-        <span class="thinking-title">💭 正在思考与规划...</span>
-        <span style="font-size: 10px;">[展开/收折]</span>
+      <div class="thinking-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <span class="thinking-title">💭 思考过程 (规划中...)</span>
+        <span style="font-size: 10px;">[展开/收起]</span>
       </div>
-      <div class="thinking-content"></div>
+      <div class="thinking-body"></div>
     `;
 
-    // 工具调用清单
-    const toolsBox = document.createElement('div');
-    toolsBox.className = 'turn-tools';
-    toolsBox.style.display = 'none';
+    // 步骤折叠清单（关键：解决霸屏痛点）
+    const stepsBox = document.createElement('div');
+    stepsBox.className = 'steps-accordion';
+    stepsBox.style.display = 'none';
+    stepsBox.innerHTML = `
+      <div class="steps-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <span class="steps-summary">⚙️ 正在执行步骤...</span>
+        <span style="font-size: 11px;">[明细 &gt;]</span>
+      </div>
+      <div class="steps-body"></div>
+    `;
 
-    // 审批卡片区
+    // 权限审批
     const approvalBox = document.createElement('div');
     approvalBox.style.display = 'none';
 
     // 回复正文
-    const messageBox = document.createElement('div');
-    messageBox.className = 'turn-message';
-    messageBox.style.display = 'none';
+    const bodyBox = document.createElement('div');
+    bodyBox.className = 'agent-body';
+    bodyBox.style.display = 'none';
 
-    // 底部统计小标
-    const footer = document.createElement('div');
-    footer.className = 'turn-footer';
-    footer.style.display = 'none';
-    footer.innerHTML = `
-      <span class="turn-stats"></span>
-      <button class="turn-copy-btn" onclick="copyTextFromElement(this)">📋 复制回答</button>
+    // 改动卡片
+    const filesChangedBox = document.createElement('div');
+    filesChangedBox.className = 'files-changed-card';
+    filesChangedBox.style.display = 'none';
+    filesChangedBox.onclick = openDiffDrawer;
+    filesChangedBox.innerHTML = `
+      <div class="files-stat">
+        <span id="filesStatText">代码发生改动 &gt;</span>
+      </div>
+      <button class="btn-review-card">📄 Review</button>
     `;
 
-    container.appendChild(header);
+    // 底部操作栏
+    const actionBar = document.createElement('div');
+    actionBar.className = 'turn-action-bar';
+    actionBar.style.display = 'none';
+    actionBar.innerHTML = `
+      <div class="action-icons">
+        <button class="icon-action-btn">👍</button>
+        <button class="icon-action-btn">👎</button>
+        <button class="icon-action-btn" onclick="copyTurnText(this)">📋 复制</button>
+      </div>
+      <span class="tokens-info"></span>
+    `;
+
+    container.appendChild(meta);
     container.appendChild(thinkingBox);
-    container.appendChild(toolsBox);
+    container.appendChild(stepsBox);
     container.appendChild(approvalBox);
-    container.appendChild(messageBox);
-    container.appendChild(footer);
+    container.appendChild(bodyBox);
+    container.appendChild(filesChangedBox);
+    container.appendChild(actionBar);
 
     timeline.appendChild(container);
     scrollToBottom();
 
-    let fullAnswerMarkdown = '';
-    let latestToolEl = null;
+    let fullMarkdown = '';
+    let totalStepsCount = 0;
+    let stepItemsList = [];
 
     return {
       element: container,
-      showThinking(text) {
+      updateThinking(text) {
         thinkingBox.style.display = 'block';
-        const content = thinkingBox.querySelector('.thinking-content');
-        if (content) {
-          content.innerText = text;
-        }
+        thinkingBox.querySelector('.thinking-body').innerText = text;
       },
-      addToolStep(cmd) {
-        toolsBox.style.display = 'flex';
-        const step = document.createElement('div');
-        step.className = 'tool-step';
-        step.innerHTML = `
-          <div class="tool-step-header" onclick="this.parentElement.classList.toggle('expanded')">
-            <span style="color: #58a6ff;">💻</span>
-            <span class="tool-step-cmd">${escapeHtml(cmd)}</span>
-            <span style="color: #58a6ff; font-size: 10px;">运行中...</span>
-          </div>
-          <div class="tool-step-out">正在执行命令，等待输出...</div>
+      addStep(cmd) {
+        stepsBox.style.display = 'block';
+        totalStepsCount++;
+        stepsBox.querySelector('.steps-summary').innerText = `⚙️ 正在执行步骤 (${totalStepsCount}): ${cmd}`;
+
+        const item = document.createElement('div');
+        item.className = 'step-item';
+        item.innerHTML = `
+          <span class="step-cmd">${escapeHtml(cmd)}</span>
+          <span style="color: #58a6ff; font-size: 10px;">运行中...</span>
         `;
-        toolsBox.appendChild(step);
-        latestToolEl = step;
+        stepsBox.querySelector('.steps-body').appendChild(item);
+        stepItemsList.push(item);
       },
-      finishLatestToolStep(output) {
-        if (!latestToolEl) return;
-        const tag = latestToolEl.querySelector('.tool-step-header span:last-child');
-        if (tag) {
-          tag.innerText = '✓ 完成';
-          tag.style.color = '#3fb950';
+      finishLastStep(output) {
+        if (stepItemsList.length > 0) {
+          const last = stepItemsList[stepItemsList.length - 1];
+          const tag = last.querySelector('span:last-child');
+          if (tag) {
+            tag.innerText = '✓ 完成';
+            tag.style.color = '#3fb950';
+          }
         }
-        const out = latestToolEl.querySelector('.tool-step-out');
-        if (out && output) {
-          out.innerText = output;
-        }
-        latestToolEl = null;
       },
-      showApprovalCard(ev) {
+      showApproval(ev) {
         approvalBox.style.display = 'block';
-        const cmd = ev.tool_call?.command || ev.message || '未知操作';
+        const cmd = prettifyCommand(ev.tool_call?.command || ev.message || '未知操作');
         approvalBox.innerHTML = `
-          <div class="turn-approval">
+          <div class="approval-card">
             <div class="approval-title">⚠️ 权限审批请求</div>
             <div class="approval-cmd">${escapeHtml(cmd)}</div>
-            <div class="approval-actions">
-              <button class="btn-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝</button>
-              <button class="btn-approve" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
+            <div class="approval-btns">
+              <button class="btn-app-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝</button>
+              <button class="btn-app-allow" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
             </div>
           </div>
         `;
       },
-      appendMessageText(text) {
+      appendMessage(text) {
         if (!text) return;
-        messageBox.style.display = 'block';
-        fullAnswerMarkdown += text;
-        messageBox.innerHTML = renderSimpleMarkdown(fullAnswerMarkdown);
-        // 回答出现时自动折叠思考条
-        const thinkTitle = thinkingBox.querySelector('.thinking-title');
-        if (thinkTitle) thinkTitle.innerText = '💭 深度规划已就绪';
+        bodyBox.style.display = 'block';
+        fullMarkdown += text;
+        bodyBox.innerHTML = renderSimpleMarkdown(fullMarkdown);
+
+        // 回答出现后，思考条与步骤列表优雅收拢
+        thinkingBox.querySelector('.thinking-title').innerText = '💭 深度规划已就绪';
         thinkingBox.classList.remove('expanded');
-      },
-      appendFallbackOutput(output) {
-        // 如果尚无正文，将有效输出作为回复正文渐进呈现
-        this.appendMessageText(output);
+
+        if (totalStepsCount > 0) {
+          stepsBox.querySelector('.steps-summary').innerText = `⚙️ 已完成 ${totalStepsCount} 个执行步骤`;
+          stepsBox.classList.remove('expanded');
+        }
       },
       markCompleted(statsText) {
-        const tag = header.querySelector('.turn-status-tag');
-        if (tag) {
-          tag.className = 'turn-status-tag done';
-          tag.innerText = '完成';
+        actionBar.style.display = 'flex';
+        let msg = statsText || '任务处理完毕';
+        msg = msg.replace(/✅/g, '').trim();
+        actionBar.querySelector('.tokens-info').innerText = `${msg} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+        if (totalStepsCount > 0) {
+          stepsBox.querySelector('.steps-summary').innerText = `⚙️ 已完成 ${totalStepsCount} 个执行步骤`;
+          stepsBox.classList.remove('expanded');
         }
-        // 优雅底部小标
-        footer.style.display = 'flex';
-        let statMsg = statsText || '任务已就绪';
-        statMsg = statMsg.replace(/✅/g, '').trim();
-        footer.querySelector('.turn-stats').innerText = `${statMsg} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      },
+      showFilesChanged(stat) {
+        filesChangedBox.style.display = 'flex';
+        filesChangedBox.querySelector('#filesStatText').innerHTML = stat;
       }
     };
   }
 
   function addUserBubble(text) {
-    const timeline = document.getElementById('chatTimeline');
+    const timeline = document.getElementById('agTimeline');
     const bubble = document.createElement('div');
-    bubble.className = 'bubble-user';
+    bubble.className = 'user-bubble';
     bubble.innerText = text;
     const time = document.createElement('div');
     time.className = 'bubble-time';
@@ -979,17 +1082,17 @@
       payload: {}
     }));
 
-    const card = btn.closest('.turn-approval');
+    const card = btn.closest('.approval-card');
     if (card) {
       card.innerHTML = `
-        <div class="approval-done">
+        <div style="font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(63, 185, 80, 0.2); color: #3fb950;">
           ${allow ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作'} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       `;
     }
   }
 
-  // 4. 输入与交互处理
+  // 4. 输入交互与状态管理
   function submitPrompt() {
     const input = document.getElementById('promptInput');
     const prompt = input.value.trim();
@@ -1006,10 +1109,8 @@
     input.style.height = 'auto';
     closeSlashMenu();
 
-    // 立即建立本次回复的 Antigravity 单轮容器
-    currentTurn = createAgentTurnContainer(agent);
-
-    setSendButtonState(true);
+    currentTurn = createAgentTurn(agent);
+    setTaskBarActive(true, '1 task running');
 
     socket.send(JSON.stringify({
       action: 'start_session',
@@ -1021,22 +1122,36 @@
     }));
   }
 
-  function setSendButtonState(running) {
+  function setTaskBarActive(active, text) {
+    const bar = document.getElementById('floatingTaskBar');
     const btn = document.getElementById('sendBtn');
-    if (running) {
-      btn.innerHTML = '⏹';
-      btn.className = 'btn-send btn-stop';
-      btn.title = '终止任务';
+    const icon = document.getElementById('sendIcon');
+
+    if (active) {
+      bar.classList.add('active');
+      document.getElementById('taskBarText').innerText = `${text} (00:00)`;
+      btn.className = 'btn-send-circle running';
+      icon.innerText = '⏹';
       btn.onclick = terminateSession;
     } else {
-      btn.innerHTML = '🚀';
-      btn.className = 'btn-send';
-      btn.title = '派发至电脑执行';
+      bar.classList.remove('active');
+      btn.className = 'btn-send-circle';
+      icon.innerText = '→';
       btn.onclick = submitPrompt;
     }
   }
 
-  function terminateSession() {
+  function updateTaskBarText(text) {
+    const el = document.getElementById('taskBarText');
+    if (el) {
+      const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
+      const s = String(sessionSeconds % 60).padStart(2, '0');
+      el.innerText = `${text} (${m}:${s})`;
+    }
+  }
+
+  function terminateSession(e) {
+    if (e) e.stopPropagation();
     if (socket && activeSessionId) {
       socket.send(JSON.stringify({
         action: 'terminate',
@@ -1045,17 +1160,30 @@
       }));
     }
     stopTimer();
-    setSendButtonState(false);
+    setTaskBarActive(false);
     if (currentTurn) {
-      currentTurn.markCompleted('用户已手动终止任务');
+      currentTurn.markCompleted('用户手动终止');
       currentTurn = null;
     }
   }
 
-  function applyPrompt(text) {
-    const input = document.getElementById('promptInput');
-    input.value = text;
-    input.focus();
+  function startTimer() {
+    stopTimer();
+    sessionSeconds = 0;
+    timerInterval = setInterval(() => {
+      sessionSeconds++;
+      const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
+      const s = String(sessionSeconds % 60).padStart(2, '0');
+      const text = document.getElementById('taskBarText').innerText.split('(')[0].trim();
+      document.getElementById('taskBarText').innerText = `${text} (${m}:${s})`;
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   }
 
   function handleKeyDown(e) {
@@ -1070,9 +1198,15 @@
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 
-    const val = input.value;
-    const pop = document.getElementById('slashPopover');
-    if (val.startsWith('/')) {
+    const sendBtn = document.getElementById('sendBtn');
+    if (input.value.trim().length > 0) {
+      sendBtn.classList.add('ready');
+    } else {
+      sendBtn.classList.remove('ready');
+    }
+
+    const pop = document.getElementById('slashMenu');
+    if (input.value.startsWith('/')) {
       pop.classList.add('active');
     } else {
       pop.classList.remove('active');
@@ -1086,14 +1220,26 @@
     else if (cmd === '/commit') input.value = '为当前修改生成语义化 Git Commit 并提交';
     else if (cmd === '/clean') input.value = '精简优化当前模块代码，去除多余冗余';
     closeSlashMenu();
+    handleInput({ target: input });
     input.focus();
   }
 
   function closeSlashMenu() {
-    document.getElementById('slashPopover').classList.remove('active');
+    document.getElementById('slashMenu').classList.remove('active');
   }
 
-  // 5. Diff 抽屉逻辑
+  function toggleQuickChips() {
+    document.getElementById('chipsPopover').classList.toggle('active');
+  }
+
+  function applyPrompt(text) {
+    const input = document.getElementById('promptInput');
+    input.value = text;
+    handleInput({ target: input });
+    input.focus();
+  }
+
+  // 5. Diff 抽屉
   function openDiffDrawer() {
     document.getElementById('diffDrawer').classList.add('active');
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -1105,11 +1251,26 @@
     document.getElementById('diffDrawer').classList.remove('active');
   }
 
+  function openTaskDrawer() {
+    // 展开当前执行步骤
+    if (currentTurn) {
+      const steps = currentTurn.element.querySelector('.steps-accordion');
+      if (steps) {
+        steps.classList.toggle('expanded');
+      }
+    }
+  }
+
   function renderDiffContent(data) {
     const body = document.getElementById('diffBody');
     if (!data || (!data.diff && !data.stat)) {
       body.innerHTML = '<div style="color: #8b949e; text-align: center; margin-top: 40px;">当前工作区干净，无未提交的 Git 改动。</div>';
       return;
+    }
+
+    // 如果检测到有修改且当前有回复卡片，展示 Files Changed 卡片
+    if (data.stat && currentTurn) {
+      currentTurn.showFilesChanged(escapeHtml(data.stat.split('\n')[0]));
     }
 
     let html = '';
@@ -1133,27 +1294,18 @@
     body.innerHTML = html;
   }
 
-  // 6. 工具函数
-  function startTimer() {
-    stopTimer();
-    sessionSeconds = 0;
-    timerInterval = setInterval(() => {
-      sessionSeconds++;
-      const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
-      const s = String(sessionSeconds % 60).padStart(2, '0');
-      document.getElementById('sessionTimer').innerText = `${m}:${s}`;
-    }, 1000);
-  }
-
-  function stopTimer() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+  // 6. 辅助工具函数
+  function prettifyCommand(cmd) {
+    if (!cmd) return '';
+    let c = cmd.trim();
+    c = c.replace(/^["]?[A-Z]:\\Windows\\System32\\WindowsPowerShell\\v1\.0\\powershell(\.exe)?["]?\s+(-(NoProfile|NonInteractive|ExecutionPolicy\s+\w+|Command)\s+)*/i, 'powershell ');
+    c = c.replace(/^["]?[A-Z]:\\Windows\\System32\\cmd(\.exe)?["]?\s+(\/c\s+)*/i, 'cmd ');
+    c = c.replace(/^["']|["']$/g, '');
+    return c;
   }
 
   function scrollToBottom() {
-    const tl = document.getElementById('chatTimeline');
+    const tl = document.getElementById('agTimeline');
     tl.scrollTop = tl.scrollHeight;
   }
 
@@ -1172,25 +1324,16 @@
     return out;
   }
 
-  function copyTextFromElement(btn) {
+  function copyTurnText(btn) {
     const turn = btn.closest('.agent-turn');
     if (turn) {
-      const msg = turn.querySelector('.turn-message');
-      if (msg) {
-        navigator.clipboard.writeText(msg.innerText).then(() => {
+      const body = turn.querySelector('.agent-body');
+      if (body) {
+        navigator.clipboard.writeText(body.innerText).then(() => {
           btn.innerText = '✓ 已复制';
-          setTimeout(() => btn.innerText = '📋 复制回答', 2000);
+          setTimeout(() => btn.innerText = '📋 复制', 2000);
         });
       }
-    }
-  }
-
-  function promptManualConnect() {
-    const current = localStorage.getItem('cw_ws_url') || getWsUrl();
-    const url = prompt('请输入电脑端 WebSocket 连接地址：', current);
-    if (url) {
-      localStorage.setItem('cw_ws_url', url);
-      location.reload();
     }
   }
 

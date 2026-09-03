@@ -34,6 +34,7 @@ class AgentTurnItem extends ChatItem {
   AgentEvent? pendingApproval;
   bool isApprovalDecided;
   bool wasApprovalAllowed;
+  bool isToolsExpanded;
   String answerText;
   String? statsText;
   bool isCompleted;
@@ -45,6 +46,7 @@ class AgentTurnItem extends ChatItem {
     this.thinkingText,
     this.isThinkingPulsing = false,
     this.isThinkingExpanded = false,
+    this.isToolsExpanded = false,
     this.pendingApproval,
     this.isApprovalDecided = false,
     this.wasApprovalAllowed = false,
@@ -441,40 +443,58 @@ class _CommanderScreenState extends State<CommanderScreen> {
               const SizedBox(height: 6),
             ],
 
-            // 2. 工具调用清单
-            for (var tool in item.tools) ...[
+            // 2. 工具调用步骤清单 (Antigravity 2.0 聚合折叠)
+            if (item.tools.isNotEmpty) ...[
               Container(
-                margin: const EdgeInsets.only(bottom: 4),
+                margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D1117),
-                  border: Border.all(color: const Color(0xFF2D333B)),
-                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFF161920),
+                  border: Border.all(color: const Color(0xFF242933)),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   children: [
                     InkWell(
-                      onTap: () => setState(() => tool.isExpanded = !tool.isExpanded),
+                      onTap: () => setState(() => item.isToolsExpanded = !item.isToolsExpanded),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(Icons.terminal, size: 12, color: Color(0xFF58A6FF)),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text(tool.command, style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFF79C0FF)), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                            Text(tool.isRunning ? '运行中...' : '✓ 完成', style: TextStyle(color: tool.isRunning ? const Color(0xFF58A6FF) : const Color(0xFF3FB950), fontSize: 9)),
+                            Text(
+                              item.isCompleted
+                                  ? '⚙️ 已完成 ${item.tools.length} 个执行步骤'
+                                  : '⚙️ 正在执行步骤 (${item.tools.length}): ${item.tools.last.command}',
+                              style: const TextStyle(color: Color(0xFF79C0FF), fontSize: 11, fontWeight: FontWeight.w500),
+                            ),
+                            Text(item.isToolsExpanded ? '[收起]' : '[明细 >]', style: const TextStyle(color: Color(0xFF79C0FF), fontSize: 10)),
                           ],
                         ),
                       ),
                     ),
-                    if (tool.isExpanded && tool.output.isNotEmpty)
+                    if (item.isToolsExpanded)
                       Container(
-                        width: double.infinity,
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF090D13),
-                          border: Border(top: BorderSide(color: Color(0xFF2D333B))),
+                          color: Color(0xFF0E1014),
+                          border: Border(top: BorderSide(color: Color(0xFF242933))),
                         ),
-                        child: SelectableText(tool.output, style: const TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF8B949E))),
+                        child: Column(
+                          children: [
+                            for (var t in item.tools)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 3),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(t.command, style: const TextStyle(fontFamily: 'monospace', fontSize: 10, color: Color(0xFF79C0FF)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    ),
+                                    Text(t.isRunning ? '运行中...' : '✓ 完成', style: TextStyle(color: t.isRunning ? const Color(0xFF58A6FF) : const Color(0xFF3FB950), fontSize: 9)),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
