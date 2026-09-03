@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/cloudwork/cloudwork-daemon/internal/agent"
@@ -92,6 +93,24 @@ func (s *WSServer) GetSessionManager() *session.Manager {
 
 // Start 启动本地 WebSocket 监听
 func (s *WSServer) Start() error {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		// 寻找并读取 web/index.html
+		htmlData, err := os.ReadFile("web/index.html")
+		if err != nil {
+			htmlData, err = os.ReadFile("../web/index.html")
+		}
+		if err != nil {
+			http.Error(w, "CloudWork Web UI not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(htmlData)
+	})
+
 	http.HandleFunc("/ws", s.handleWebSocket)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -104,6 +123,7 @@ func (s *WSServer) Start() error {
 
 	addr := fmt.Sprintf("0.0.0.0:%d", s.cfg.Port)
 	log.Printf("[WebSocket] 本地监听服务已就绪: ws://%s/ws\n", addr)
+	log.Printf("[Web UI] 移动控制端页面已就绪: http://%s/\n", addr)
 	return http.ListenAndServe(addr, nil)
 }
 

@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 	"regexp"
-	"strings"
+	"runtime"
 	"time"
 
 	"github.com/cloudwork/cloudwork-daemon/internal/config"
@@ -33,12 +33,10 @@ func (d *GenericCLIDriver) Detect() bool {
 }
 
 func (d *GenericCLIDriver) BuildCommand(prompt string, model string, workingDir string) (string, []string) {
-	// 默认直接执行 prompt 中的命令
-	parts := strings.Fields(prompt)
-	if len(parts) == 0 {
-		return "cmd", []string{}
+	if runtime.GOOS == "windows" {
+		return "cmd.exe", []string{"/C", prompt}
 	}
-	return parts[0], parts[1:]
+	return "bash", []string{"-c", prompt}
 }
 
 func (d *GenericCLIDriver) BuildEnvironment(station *config.APIStation) []string {

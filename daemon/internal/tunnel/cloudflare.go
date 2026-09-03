@@ -13,7 +13,7 @@ var cfUrlRegex = regexp.MustCompile(`https://[a-zA-Z0-9-]+\.trycloudflare\.com`)
 
 // StartCloudflareTunnel 启动并捕获 Cloudflare 免费穿透隧道
 func StartCloudflareTunnel(localPort int) (string, *exec.Cmd, error) {
-	cmd := exec.Command("cloudflared", "tunnel", "--url", fmt.Sprintf("http://127.0.0.1:%d", localPort), "--no-autoupdate")
+	cmd := exec.Command("cloudflared", "tunnel", "--url", fmt.Sprintf("http://127.0.0.1:%d", localPort), "--protocol", "http2", "--no-autoupdate")
 	
 	stderr, err := cmd.StderrPipe()
 	if err != nil {

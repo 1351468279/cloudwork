@@ -55,14 +55,13 @@ func (d *CodexDriver) BuildEnvironment(station *config.APIStation) []string {
 	if station == nil {
 		return env
 	}
-
 	if station.APIKey != "" {
 		env = append(env, fmt.Sprintf("OPENAI_API_KEY=%s", station.APIKey))
 	}
 	return env
 }
 
-// ProcessOutput 分析输出流（支持 JSONL 结构化解析与文本兜底）
+// ProcessOutput 分析输出流（结构化 JSONL 优雅提取，杜绝生硬的 JSON 源码泄漏）
 func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 	var events []*AgentEvent
 	now := time.Now().Unix()
@@ -74,44 +73,88 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 			continue
 		}
 
-		// 尝试解析 JSONL 事件
+		// 尝试解析 JSONL 结构化事件
 		var jsonEvent map[string]interface{}
 		if err := json.Unmarshal([]byte(trimmed), &jsonEvent); err == nil {
-			evType := StatusThinking
-			msg := ""
 			t, _ := jsonEvent["type"].(string)
 
 			switch t {
 			case "thread.started":
-				msg = "🧵 任务线程已创建"
+				events = append(events, &AgentEvent{
+					AgentType: d.Type(),
+					Type:      EventStatusChange,
+					Status:    StatusThinking,
+					Message:   "🧵 任务会话已拉起，Codex 正在初始化上下文...",
+					Timestamp: now,
+				})
 			case "turn.started":
-				msg = "⚡ Codex 正在思考与分析需求..."
+				events = append(events, &AgentEvent{
+					AgentType: d.Type(),
+					Type:      EventStatusChange,
+					Status:    StatusThinking,
+					Message:   "⚡ Codex 开始深度思考与代码规划...",
+					Timestamp: now,
+				})
+			case "item.started":
+				if item, ok := jsonEvent["item"].(map[string]interface{}); ok {
+					itemType, _ := item["type"].(string)
+					if itemType == "command_execution" {
+						cmd, _ := item["command"].(string)
+						events = append(events, &AgentEvent{
+							AgentType: d.Type(),
+							Type:      EventStdOutput,
+							Status:    StatusThinking,
+							Message:   fmt.Sprintf("💻 [执行命令] %s", cmd),
+							Timestamp: now,
+						})
+					}
+				}
 			case "item.completed":
 				if item, ok := jsonEvent["item"].(map[string]interface{}); ok {
 					itemType, _ := item["type"].(string)
 					if itemType == "agent_message" {
-						if text, ok := item["text"].(string); ok {
-							msg = text
+						if text, ok := item["text"].(string); ok && text != "" {
+							events = append(events, &AgentEvent{
+								AgentType: d.Type(),
+								Type:      EventStdOutput,
+								Status:    StatusThinking,
+								Message:   text,
+								RawOutput: text,
+								Timestamp: now,
+							})
+						}
+					} else if itemType == "command_execution" {
+						output, _ := item["aggregated_output"].(string)
+						if output != "" {
+							events = append(events, &AgentEvent{
+								AgentType: d.Type(),
+								Type:      EventStdOutput,
+								Status:    StatusThinking,
+								Message:   strings.TrimSpace(output),
+								RawOutput: output,
+								Timestamp: now,
+							})
 						}
 					}
 				}
 			case "turn.completed":
-				evType = StatusCompleted
-				msg = "✅ Codex 任务处理完成！"
+				usageMsg := "✅ Codex 任务处理完毕！"
+				if usage, ok := jsonEvent["usage"].(map[string]interface{}); ok {
+					inTokens, _ := usage["input_tokens"].(float64)
+					outTokens, _ := usage["output_tokens"].(float64)
+					if inTokens > 0 || outTokens > 0 {
+						usageMsg = fmt.Sprintf("✅ Codex 任务处理完毕 (消耗 Token: 输入 %.0f / 输出 %.0f)", inTokens, outTokens)
+					}
+				}
+				events = append(events, &AgentEvent{
+					AgentType: d.Type(),
+					Type:      EventStatusChange,
+					Status:    StatusCompleted,
+					Message:   usageMsg,
+					Timestamp: now,
+				})
 			}
-
-			if msg == "" {
-				msg = trimmed
-			}
-
-			events = append(events, &AgentEvent{
-				AgentType: d.Type(),
-				Type:      EventStdOutput,
-				Status:    evType,
-				Message:   msg,
-				RawOutput: line,
-				Timestamp: now,
-			})
+			// 结构化 JSON 识别完毕后不再向下当普通文本泄露
 			continue
 		}
 
@@ -121,34 +164,27 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 				AgentType: d.Type(),
 				Type:      EventToolCallRequest,
 				Status:    StatusAwaitingApproval,
-				Message:   "Codex 请求沙箱命令执行授权",
+				Message:   "Codex 请求执行命令授权",
 				ToolCall: &ToolCallPayload{
 					ToolID:      fmt.Sprintf("codex_tool_%d", now),
-					ToolName:    "Sandbox Execution",
+					ToolName:    "Command Execution",
+					Command:     trimmed,
 					Description: trimmed,
 				},
 				RawOutput: trimmed,
 				Timestamp: now,
 			})
 		} else {
+			// 普通控制台纯文本输出
 			events = append(events, &AgentEvent{
 				AgentType: d.Type(),
 				Type:      EventStdOutput,
 				Status:    StatusThinking,
 				RawOutput: trimmed,
+				Message:   trimmed,
 				Timestamp: now,
 			})
 		}
-	}
-
-	if len(events) == 0 && rawOutput != "" {
-		events = append(events, &AgentEvent{
-			AgentType: d.Type(),
-			Type:      EventStdOutput,
-			Status:    StatusThinking,
-			RawOutput: rawOutput,
-			Timestamp: now,
-		})
 	}
 
 	return events

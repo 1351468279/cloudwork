@@ -47,8 +47,13 @@ func StartProcess(id string, command string, args []string, cwd string, env []st
 		cmd.Dir = cwd
 	}
 
-	// 合并系统环境变量与注入的环境变量
-	cmd.Env = append(os.Environ(), env...)
+	// 合并系统环境变量与注入的环境变量，并确保控制台采用 UTF-8 编码
+	utf8Envs := []string{
+		"PYTHONIOENCODING=utf-8",
+		"LANG=zh_CN.UTF-8",
+		"LC_ALL=zh_CN.UTF-8",
+	}
+	cmd.Env = append(os.Environ(), append(utf8Envs, env...)...)
 
 	stdinPipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -102,18 +107,15 @@ func StartProcess(id string, command string, args []string, cwd string, env []st
 }
 
 func (s *ProcessSession) readPipe(r io.Reader) {
-	reader := bufio.NewReader(r)
-	buf := make([]byte, 1024)
-	for {
-		n, err := reader.Read(buf)
-		if n > 0 {
-			text := string(buf[:n])
-			if s.OnOutput != nil {
-				s.OnOutput(text)
-			}
-		}
-		if err != nil {
-			break
+	scanner := bufio.NewScanner(r)
+	// 支持单行最大 2MB 完整传输（处理大型 diff 与结构化 JSONL 输出）
+	buf := make([]byte, 64*1024)
+	scanner.Buffer(buf, 2*1024*1024)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if s.OnOutput != nil {
+			s.OnOutput(line + "\n")
 		}
 	}
 }

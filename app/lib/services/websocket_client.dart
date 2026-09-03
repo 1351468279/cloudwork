@@ -9,10 +9,14 @@ class WebSocketService extends ChangeNotifier {
   bool _isConnected = false;
   String? _connectedHost;
   String _activeSessionId = '';
+  String _serverWorkingDir = '.';
+  List<String> _availableAgents = [];
 
   bool get isConnected => _isConnected;
   String? get connectedHost => _connectedHost;
   String get activeSessionId => _activeSessionId;
+  String get serverWorkingDir => _serverWorkingDir;
+  List<String> get availableAgents => _availableAgents;
 
   final StreamController<AgentEvent> _eventController = StreamController<AgentEvent>.broadcast();
   Stream<AgentEvent> get eventStream => _eventController.stream;
@@ -40,7 +44,7 @@ class WebSocketService extends ChangeNotifier {
         },
       );
 
-      // 请求电脑端当前状态
+      // 请求电脑端当前状态与可用 Agent
       sendAction('get_status', {});
     } catch (e) {
       _isConnected = false;
@@ -60,7 +64,16 @@ class WebSocketService extends ChangeNotifier {
       final Map<String, dynamic> data = jsonDecode(raw.toString());
       final type = data['type'];
 
-      if (type == 'event' && data['data'] != null) {
+      if (type == 'status' && data['action'] == 'get_status') {
+        if (data['data'] != null) {
+          final d = data['data'];
+          _serverWorkingDir = d['working_dir'] ?? '.';
+          if (d['available_agents'] is List) {
+            _availableAgents = (d['available_agents'] as List).map((e) => e.toString()).toList();
+          }
+          notifyListeners();
+        }
+      } else if (type == 'event' && data['data'] != null) {
         final ev = AgentEvent.fromJson(data['data']);
         if (ev.sessionId.isNotEmpty) {
           _activeSessionId = ev.sessionId;
@@ -69,6 +82,7 @@ class WebSocketService extends ChangeNotifier {
       } else if (type == 'response' && data['action'] == 'start_session') {
         if (data['success'] == true && data['data'] != null) {
           _activeSessionId = data['data']['id'] ?? '';
+          notifyListeners();
         }
       }
     } catch (e) {
