@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CloudWork 掌上指挥官</title>
+  <title>CloudWork 掌上指挥官 (Antigravity)</title>
   <style>
     :root {
       --bg: #090d13;
@@ -18,6 +18,8 @@
       --danger: #da3633;
       --warning: #d29922;
       --warning-glow: rgba(210, 153, 34, 0.35);
+      --purple: #a371f7;
+      --purple-glow: rgba(163, 113, 247, 0.25);
       --text: #c9d1d9;
       --text-muted: #8b949e;
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -31,7 +33,7 @@
       overflow: hidden;
     }
     .app-container {
-      max-width: 540px;
+      max-width: 580px;
       margin: 0 auto;
       height: 100%;
       display: flex;
@@ -39,7 +41,7 @@
       background: var(--card-bg);
       position: relative;
     }
-    @media (min-width: 600px) {
+    @media (min-width: 620px) {
       body {
         display: flex;
         align-items: center;
@@ -47,812 +49,1275 @@
         padding: 16px;
       }
       .app-container {
-        height: 94vh;
+        height: 96vh;
         border: 1px solid var(--border);
         border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.85);
         overflow: hidden;
       }
     }
 
-    /* 顶部导航栏 */
+    /* 顶部导航 */
     .header {
-      padding: 14px 18px;
-      background: #1c2128;
+      padding: 12px 16px;
+      background: #11151c;
       border-bottom: 1px solid var(--border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-shrink: 0;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 10;
     }
-    .header h1 {
-      font-size: 1.05rem;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
+    }
+    .brand span {
+      background: linear-gradient(90deg, #58a6ff, #bc8cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .status-badge {
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: 20px;
-      background: rgba(46, 160, 67, 0.15);
-      color: #3fb950;
-      border: 1px solid rgba(46, 160, 67, 0.4);
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .status-badge:hover { filter: brightness(1.2); }
-    .status-badge::before {
-      content: '';
-      width: 7px;
-      height: 7px;
+    .status-badge.connected {
+      background: rgba(35, 134, 54, 0.2);
+      color: #3fb950;
+      border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+    .status-badge.disconnected {
+      background: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+      border: 1px solid rgba(218, 54, 51, 0.4);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: currentColor;
-      box-shadow: 0 0 8px currentColor;
     }
-    .status-badge.offline {
-      background: rgba(218, 54, 51, 0.15);
-      color: #f85149;
-      border-color: rgba(218, 54, 51, 0.4);
+    .status-badge.connected .status-dot {
+      box-shadow: 0 0 8px var(--success-glow);
     }
 
-    /* 选项卡栏 */
-    .tabs {
-      display: flex;
-      background: #161b22;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .tab {
-      flex: 1;
-      padding: 12px 6px;
-      text-align: center;
-      font-size: 0.85rem;
-      cursor: pointer;
-      color: var(--text-muted);
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .tab.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
+    .agent-pill {
+      background: #1f242c;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 11px;
       font-weight: 600;
-      background: rgba(88, 166, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+    .diff-btn {
+      background: #1f242c;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .diff-btn:hover {
+      color: #fff;
+      border-color: var(--primary);
     }
 
-    /* 内容滚动区域 */
-    .content-area {
+    /* 对话流时间线 */
+    .chat-timeline {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      -webkit-overflow-scrolling: touch;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+    .chat-timeline::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-timeline::-webkit-scrollbar-thumb {
+      background: #21262d;
+      border-radius: 3px;
     }
 
-    /* 通用卡片 */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
+    /* 用户气泡 */
+    .bubble-user {
+      align-self: flex-end;
+      max-width: 86%;
+      background: linear-gradient(135deg, #1f6feb, #1158c7);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 16px 16px 4px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 4px 14px rgba(31, 111, 235, 0.25);
+      word-break: break-word;
+    }
+    .bubble-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    /* Agent 气泡主轴 */
+    .bubble-agent {
+      align-self: flex-start;
+      max-width: 95%;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
-    .card-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #fff;
+    .agent-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-    }
-
-    /* 表单控件 */
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-label {
-      font-size: 0.75rem;
+      gap: 8px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
-    input, select, textarea {
-      width: 100%;
+    .agent-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #a371f7, #58a6ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      font-weight: bold;
+    }
+    .agent-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px 16px 16px 16px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e6edf3;
+      word-break: break-word;
+    }
+    .agent-content p {
+      margin-bottom: 8px;
+    }
+    .agent-content p:last-child {
+      margin-bottom: 0;
+    }
+    .agent-content pre {
       background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      color: #fff;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      color: #7ee787;
     }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
-    }
-    textarea {
-      resize: none;
-      min-height: 80px;
-      font-family: inherit;
+    .agent-content code {
+      background: rgba(110, 118, 129, 0.2);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
     }
 
-    /* Prompt 快捷芯片 */
-    .chip-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    /* 思考折叠卡片 (Thinking Accordion) */
+    .thinking-card {
+      background: rgba(163, 113, 247, 0.06);
+      border: 1px solid rgba(163, 113, 247, 0.25);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 4px 0;
+      transition: all 0.2s;
     }
-    .chip {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 0.75rem;
-      padding: 6px 10px;
-      border-radius: 8px;
+    .thinking-card.pulsing {
+      border-color: rgba(163, 113, 247, 0.6);
+      box-shadow: 0 0 16px var(--purple-glow);
+    }
+    .thinking-header {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       cursor: pointer;
       user-select: none;
-      transition: all 0.15s;
+      font-size: 12px;
+      color: #d2a8ff;
+      font-weight: 500;
     }
-    .chip:hover {
-      border-color: var(--primary);
-      color: #fff;
-      transform: translateY(-1px);
+    .thinking-header:hover {
+      background: rgba(163, 113, 247, 0.1);
     }
-
-    /* 按钮 */
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-primary {
-      background: var(--primary);
-      color: #0d1117;
-    }
-    .btn-primary:hover { background: var(--primary-hover); color: #fff; }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-
-    /* 活动任务卡片 */
-    .active-session-card {
-      background: rgba(88, 166, 255, 0.08);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .session-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .session-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(88, 166, 255, 0.2);
-      color: var(--primary);
-    }
-    .session-desc {
-      font-size: 0.85rem;
-      color: #fff;
-      word-break: break-all;
-    }
-
-    /* 终端日志页 (全高占满) */
-    #tab-logs {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .terminal-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      height: 100%;
-    }
-    .terminal-bar {
-      padding: 8px 12px;
-      background: #161b22;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-    .terminal-actions {
-      display: flex;
-      gap: 6px;
-    }
-    .tool-btn {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 0.7rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .tool-btn:hover { color: #fff; border-color: var(--primary); }
-    .terminal-screen {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
+    .thinking-body {
+      display: none;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #bc8cff;
       font-family: var(--font-mono);
-      font-size: 0.82rem;
       line-height: 1.5;
-      color: #e6edf3;
+      background: rgba(0, 0, 0, 0.25);
+      border-top: 1px solid rgba(163, 113, 247, 0.15);
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .thinking-card.expanded .thinking-body {
+      display: block;
+    }
+
+    /* 工具调用胶囊 (Tool Badges) */
+    .tool-badge {
+      background: #11151c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin: 4px 0;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .tool-badge-header {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+      gap: 8px;
+    }
+    .tool-badge-header:hover {
+      background: #161b22;
+    }
+    .tool-cmd {
+      font-family: var(--font-mono);
+      color: #79c0ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .tool-status-tag {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .tool-status-tag.running {
+      background: rgba(88, 166, 255, 0.2);
+      color: #58a6ff;
+    }
+    .tool-status-tag.success {
+      background: rgba(35, 134, 54, 0.2);
+      color: #3fb950;
+    }
+    .tool-status-tag.failed {
+      background: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+    .tool-badge-output {
+      display: none;
+      padding: 10px;
+      background: var(--card-inner);
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #8b949e;
+      line-height: 1.4;
+      max-height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .tool-badge.expanded .tool-badge-output {
+      display: block;
+    }
+
+    /* 行内审批卡片 (Inline Approval Card) */
+    .approval-card {
+      background: rgba(210, 153, 34, 0.08);
+      border: 1.5px solid var(--warning);
+      box-shadow: 0 0 20px var(--warning-glow);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 8px 0;
+      animation: pulseAlert 2s infinite ease-in-out;
+    }
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 16px var(--warning-glow); }
+      50% { box-shadow: 0 0 26px rgba(210, 153, 34, 0.6); }
+    }
+    .approval-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .approval-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .approval-cmd {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #7ee787;
+      margin-bottom: 14px;
+      overflow-x: auto;
       white-space: pre-wrap;
       word-break: break-all;
-      -webkit-overflow-scrolling: touch;
     }
-    .log-line {
-      margin-bottom: 4px;
+    .approval-actions {
+      display: flex;
+      gap: 10px;
     }
-    .log-system { color: #58a6ff; }
-    .log-success { color: #3fb950; font-weight: 600; }
-    .log-warning { color: #d29922; }
-    .log-error { color: #f85149; font-weight: 600; }
-    .log-agent { color: #7ee787; }
-    .log-cmd { color: #e3b341; background: rgba(227, 179, 65, 0.1); padding: 2px 4px; border-radius: 4px; }
-
-    /* 浮动审批抽屉/弹窗 (极具视觉冲击力) */
-    .approval-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      display: none;
+    .btn-reject {
+      flex: 1;
+      height: 42px;
+      background: transparent;
+      border: 1.5px solid var(--danger);
+      color: #f85149;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      z-index: 999;
-      animation: fadeIn 0.2s ease-out;
+      gap: 4px;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .approval-modal {
-      width: 100%;
-      max-width: 440px;
-      background: #1c2128;
-      border: 2px solid var(--warning);
-      box-shadow: 0 0 30px var(--warning-glow);
-      border-radius: 20px;
-      padding: 20px;
+    .btn-approve {
+      flex: 1;
+      height: 42px;
+      background: var(--success);
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      gap: 14px;
-      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: 0 4px 12px var(--success-glow);
     }
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .approval-badge {
+    .approval-decided {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--warning);
-      font-size: 0.95rem;
-      font-weight: 700;
     }
-    .approval-msg {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.4;
+    .approval-decided.approved {
+      background: rgba(35, 134, 54, 0.2);
+      color: #3fb950;
+      border: 1px solid rgba(35, 134, 54, 0.4);
     }
-    .approval-codebox {
-      background: #090d13;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      color: #7ee787;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      word-break: break-all;
-      max-height: 140px;
-      overflow-y: auto;
-    }
-    .approval-btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 4px;
+    .approval-decided.rejected {
+      background: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+      border: 1px solid rgba(218, 54, 51, 0.4);
     }
 
-    /* 连接配置弹窗 (针对 file:// 或需手动换 IP) */
-    .conn-modal {
+    /* 代码变更卡片 (Diff Review Badge) */
+    .diff-badge {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .diff-badge:hover {
+      border-color: var(--primary);
+    }
+    .diff-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #fff;
+    }
+    .diff-stat {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .diff-link {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* 快捷指令芯片栏 (Prompt Chips) */
+    .chips-bar {
+      padding: 8px 14px;
+      background: #11151c;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .chips-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .prompt-chip {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      color: #c9d1d9;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .prompt-chip:hover, .prompt-chip:active {
+      background: #262c36;
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* 底部智能输入栏 (Smart Command Bar) */
+    .input-bar {
+      padding: 12px 14px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      position: relative;
+    }
+    .input-wrapper {
+      flex: 1;
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color 0.2s;
+    }
+    .input-wrapper:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+    }
+    .input-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .smart-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.4;
+      resize: none;
+      max-height: 120px;
+      min-height: 24px;
+      font-family: inherit;
+    }
+    .smart-textarea::placeholder {
+      color: #484f58;
+    }
+
+    .btn-send {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--primary);
+      border: none;
+      color: #090d13;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .btn-send:hover {
+      background: var(--primary-hover);
+    }
+    .btn-send:disabled {
+      background: #21262d;
+      color: #484f58;
+      cursor: not-allowed;
+    }
+    .btn-stop {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* 斜杠指令浮层 (Slash Commands Popover) */
+    .slash-popover {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
+      bottom: 74px;
+      left: 14px;
+      right: 14px;
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 20;
+    }
+    .slash-popover.active {
+      display: flex;
+    }
+    .slash-item {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+      transition: background 0.15s;
+    }
+    .slash-item:last-child {
+      border-bottom: none;
+    }
+    .slash-item:hover {
+      background: #262c36;
+    }
+    .slash-key {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .slash-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Diff 审查抽屉 (Full-Screen Diff Drawer) */
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 999;
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      z-index: 998;
     }
-    .conn-box {
+    .drawer-overlay.active {
+      display: flex;
+    }
+    .drawer-card {
       width: 100%;
-      max-width: 420px;
-      background: #1c2128;
+      max-width: 540px;
+      height: 90vh;
+      background: #0d1117;
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      overflow: hidden;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .drawer-header {
+      padding: 14px 18px;
+      background: #161b22;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .drawer-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .drawer-body {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .diff-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+      padding: 1px 4px;
+    }
+    .diff-line.add {
+      background: rgba(35, 134, 54, 0.2);
+      color: #7ee787;
+    }
+    .diff-line.del {
+      background: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+    .diff-line.header {
+      color: #58a6ff;
+      font-weight: bold;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- 顶部状态栏 -->
-    <div class="header">
-      <h1>⚡ CloudWork 指挥官</h1>
-      <div id="connStatus" class="status-badge offline" onclick="showConnModal()">
-        未连接电脑
-      </div>
+
+<div class="app-container">
+  <!-- 顶部导航 -->
+  <header class="header">
+    <div class="brand">
+      <span>⚡ CloudWork</span>
     </div>
 
-    <!-- 导航选项卡 -->
-    <div class="tabs">
-      <div id="tab-btn-control" class="tab active" onclick="switchTab('tab-control')">🎮 遥控指挥</div>
-      <div id="tab-btn-logs" class="tab" onclick="switchTab('tab-logs')">
-        📜 终端日志 <span id="logBadge" style="font-size: 0.7rem; opacity: 0.8;"></span>
-      </div>
-      <div id="tab-btn-workspaces" class="tab" onclick="switchTab('tab-workspaces')">📁 工作区</div>
-    </div>
+    <div class="header-actions">
+      <select id="agentSelect" class="agent-pill">
+        <option value="claude">Claude Code (claude)</option>
+        <option value="codex">OpenAI Codex (codex)</option>
+        <option value="aider">Aider (aider)</option>
+        <option value="generic">通用 CLI (generic)</option>
+      </select>
 
-    <!-- 1. 遥控指挥主页 -->
-    <div id="tab-control" class="content-area">
-      <!-- 任务派发面板 -->
-      <div class="card">
-        <div class="card-title">
-          <span>🚀 派发任务给受控 Agent</span>
-          <span style="font-size: 0.75rem; color: #3fb950; font-weight: normal;">零配置 · 凭据本地继承</span>
-        </div>
+      <button id="diffBtn" class="diff-btn" onclick="openDiffDrawer()">
+        <span>📝 改动</span>
+      </button>
 
-        <div class="form-group">
-          <label class="form-label">目标 Agent</label>
-          <select id="agentSelect">
-            <option value="codex">OpenAI Codex CLI (codex)</option>
-            <option value="claude">Anthropic Claude Code (claude)</option>
-            <option value="aider">Aider (aider)</option>
-            <option value="generic">通用 CLI 工具 (cmd/bash)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">当前工作目录 (Working Directory)</label>
-          <input id="workingDirInput" type="text" value="." placeholder="留空使用当前项目目录">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">常用 Prompt 快捷预设</label>
-          <div class="chip-container">
-            <div class="chip" onclick="setPrompt('运行所有单元测试并修复发现的错误')">🧪 运行测试</div>
-            <div class="chip" onclick="setPrompt('详细审查当前项目的最近改动，指出安全隐患')">🔍 审查代码</div>
-            <div class="chip" onclick="setPrompt('为当前模块补充清晰规范的架构文档与使用说明')">📝 编写文档</div>
-            <div class="chip" onclick="setPrompt('精简当前模块的多余代码与未使用的依赖')">🧹 代码精简</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">任务需求指令 (Prompt)</label>
-          <textarea id="promptInput" placeholder="输入要交给 AI Agent 自动执行的编程指令..."></textarea>
-        </div>
-
-        <button class="btn btn-primary" onclick="startSession()">🚀 派发至电脑执行</button>
-      </div>
-
-      <!-- 活动会话状态看板 -->
-      <div class="card">
-        <div class="card-title">
-          <span>📡 电脑端会话状态</span>
-          <span id="sessionStatusPill" style="font-size: 0.75rem; color: var(--text-muted);">空闲就绪</span>
-        </div>
-        <div id="sessionContainer">
-          <div style="font-size: 0.85rem; color: var(--text-muted);">暂无正在执行的任务</div>
-        </div>
+      <div id="connectionStatus" class="status-badge disconnected" onclick="promptManualConnect()">
+        <div class="status-dot"></div>
+        <span id="statusText">未连接</span>
       </div>
     </div>
+  </header>
 
-    <!-- 2. 终端日志页 (全高占满) -->
-    <div id="tab-logs" class="content-area" style="display: none;">
-      <div class="terminal-wrapper">
-        <div class="terminal-bar">
-          <span>🖥️ 电脑端标准输出流</span>
-          <div class="terminal-actions">
-            <button class="tool-btn" onclick="toggleAutoScroll()" id="autoScrollBtn">⏬ 自动滚屏: 开</button>
-            <button class="tool-btn" onclick="copyLogs()">📋 复制</button>
-            <button class="tool-btn" onclick="clearLogs()">🗑️ 清屏</button>
-          </div>
-        </div>
-        <div id="terminalScreen" class="terminal-screen">
-          <div class="log-line log-system">⚡ CloudWork 终端监听就绪，等待下达任务...</div>
-        </div>
+  <!-- 对话时间线 -->
+  <main id="chatTimeline" class="chat-timeline">
+    <!-- 欢迎卡片 -->
+    <div class="bubble-agent">
+      <div class="agent-header">
+        <div class="agent-avatar">AI</div>
+        <span>CloudWork 掌上指挥官</span>
+      </div>
+      <div class="agent-content">
+        <p>👋 你好！我是你的 <strong>CloudWork 远程 Agent 协同中心</strong>。</p>
+        <p>你现在随时可以通过下方输入需求或 <code>/</code> 指令，我将无感调度你家中电脑的 <strong>Claude Code / Codex</strong> 编写代码、审查改动并自动运行测试。</p>
       </div>
     </div>
+  </main>
 
-    <!-- 3. 工作区列表页 -->
-    <div id="tab-workspaces" class="content-area" style="display: none;">
-      <div class="card">
-        <div class="card-title">📁 快速切换工作目录</div>
-        <p style="font-size: 0.8rem; color: var(--text-muted);">点击即可快速设置为任务执行目录：</p>
-        <div id="workspacesList" style="display: flex; flex-direction: column; gap: 8px;">
-          <div class="card" style="padding: 10px 12px; cursor: pointer; background: var(--card-inner);" onclick="selectDir('.')">
-            <div style="font-weight: 600; color: #fff; font-size: 0.85rem;">当前所在项目根目录</div>
-            <div style="font-size: 0.75rem; color: var(--primary); font-family: var(--font-mono);">.</div>
-          </div>
-          <div class="card" style="padding: 10px 12px; cursor: pointer; background: var(--card-inner);" onclick="selectDir('E:\\privateproject\\cloudwork')">
-            <div style="font-weight: 600; color: #fff; font-size: 0.85rem;">cloudwork 主工程</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">E:\privateproject\cloudwork</div>
-          </div>
-        </div>
-      </div>
+  <!-- 斜杠指令快捷菜单 -->
+  <div id="slashPopover" class="slash-popover">
+    <div class="slash-item" onclick="insertSlash('/test')">
+      <span class="slash-key">/test</span>
+      <span class="slash-desc">自动运行所有单元测试并修复发现的问题</span>
     </div>
-
-    <!-- 浮动命令审批抽屉 -->
-    <div id="approvalOverlay" class="approval-overlay">
-      <div class="approval-modal">
-        <div class="approval-badge">
-          <span>⚠️ 权限审批请求</span>
-        </div>
-        <div id="approvalMsg" class="approval-msg">Agent 正在请求在电脑上执行敏感命令，请确认：</div>
-        <div id="approvalCmdBox" class="approval-codebox">go test -v ./...</div>
-        <div class="approval-btn-group">
-          <button class="btn btn-danger" onclick="sendApproval(false)">❌ 拒绝执行</button>
-          <button class="btn btn-success" onclick="sendApproval(true)">✅ 允许执行</button>
-        </div>
-      </div>
+    <div class="slash-item" onclick="insertSlash('/review')">
+      <span class="slash-key">/review</span>
+      <span class="slash-desc">详细审查当前项目未提交的代码变更</span>
     </div>
-
-    <!-- 手动配置连接弹窗 -->
-    <div id="connModal" class="conn-modal">
-      <div class="conn-box">
-        <div class="card-title">🔗 电脑连接设置</div>
-        <div class="form-group">
-          <label class="form-label">WebSocket 服务地址</label>
-          <input id="customWsInput" type="text" placeholder="ws://127.0.0.1:9288/ws 或 wss://xxxx.trycloudflare.com/ws">
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-primary" onclick="applyCustomWs()">确定连接</button>
-          <button class="btn" style="background: #21262d; color: #fff;" onclick="hideConnModal()">取消</button>
-        </div>
-      </div>
+    <div class="slash-item" onclick="insertSlash('/commit')">
+      <span class="slash-key">/commit</span>
+      <span class="slash-desc">根据修改内容自动生成规范的 Git Commit 并提交</span>
+    </div>
+    <div class="slash-item" onclick="insertSlash('/clean')">
+      <span class="slash-key">/clean</span>
+      <span class="slash-desc">精简模块的多余代码、修复 Lint 与优化性能</span>
     </div>
   </div>
 
-  <script>
-    let ws = null;
-    let activeSessionId = null;
-    let autoScroll = true;
-    let logCount = 0;
-    let sessionTimer = null;
-    let sessionStartTime = null;
+  <!-- 常用 Prompt 快捷芯片 -->
+  <div class="chips-bar">
+    <div class="prompt-chip" onclick="applyPrompt('运行测试并自动修复错误')">🧪 运行测试</div>
+    <div class="prompt-chip" onclick="applyPrompt('详细审查当前未提交的代码改动')">🔍 审查代码</div>
+    <div class="prompt-chip" onclick="applyPrompt('为当前功能补充清晰的文档与使用示例')">📝 补充文档</div>
+    <div class="prompt-chip" onclick="applyPrompt('精简未使用的代码与无用依赖')">🧹 代码精简</div>
+    <div class="prompt-chip" onclick="openDiffDrawer()">📁 审查 Git Diff</div>
+  </div>
 
-    // 智能获取默认连接地址
-    function getDefaultWsUrl() {
-      if (window.location.protocol.startsWith('http')) {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        return `${protocol}//${window.location.host}/ws`;
-      }
-      return 'ws://127.0.0.1:9288/ws';
+  <!-- 底部智能输入栏 -->
+  <footer class="input-bar">
+    <div class="input-wrapper">
+      <div class="input-hint">
+        <span>输入 / 触发指令 · 凭据电脑本地继承</span>
+        <span id="sessionTimer">00:00</span>
+      </div>
+      <textarea
+        id="promptInput"
+        class="smart-textarea"
+        placeholder="输入要交给受控 Agent 自动执行的指令..."
+        rows="1"
+        onkeydown="handleKeyDown(event)"
+        oninput="handleInput(event)"
+      ></textarea>
+    </div>
+
+    <button id="sendBtn" class="btn-send" onclick="submitPrompt()" title="派发至电脑执行">
+      🚀
+    </button>
+  </footer>
+</div>
+
+<!-- 全屏 Diff 审查抽屉 -->
+<div id="diffDrawer" class="drawer-overlay" onclick="closeDiffDrawer(event)">
+  <div class="drawer-card" onclick="event.stopPropagation()">
+    <div class="drawer-header">
+      <div class="drawer-title">📁 工作区代码变更 (Git Diff)</div>
+      <button class="drawer-close" onclick="closeDiffDrawer()">✕</button>
+    </div>
+    <div id="diffBody" class="drawer-body">
+      <div style="color: #8b949e; text-align: center; margin-top: 40px;">正在从电脑抓取 Git 改动...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let socket = null;
+  let activeSessionId = null;
+  let timerInterval = null;
+  let sessionSeconds = 0;
+  let currentThinkingCard = null;
+  let currentThinkingTimer = null;
+  let activeToolBadges = {};
+
+  // 1. 初始化 WebSocket 动态自适应探测
+  function getWsUrl() {
+    if (window.location.protocol === 'file:') {
+      return localStorage.getItem('cw_ws_url') || 'ws://127.0.0.1:9288/ws';
     }
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProto}//${window.location.host}/ws`;
+  }
 
-    let currentWsUrl = localStorage.getItem('cloudwork_ws_url') || getDefaultWsUrl();
+  function initWebSocket() {
+    const wsUrl = getWsUrl();
+    updateConnectionUI(false, '正在连接...');
 
-    function connectWS() {
-      if (ws) {
-        try { ws.close(); } catch(e) {}
-      }
+    try {
+      socket = new WebSocket(wsUrl);
 
-      appendLog(`>>> 正在连接电脑: ${currentWsUrl}`, 'log-system');
-
-      try {
-        ws = new WebSocket(currentWsUrl);
-      } catch (e) {
-        onWsDisconnected();
-        return;
-      }
-
-      ws.onopen = () => {
-        const badge = document.getElementById('connStatus');
-        badge.className = 'status-badge';
-        badge.innerText = '已连接电脑';
-        appendLog('✓ 成功建立端到端实时通信通道', 'log-success');
-        ws.send(JSON.stringify({ action: 'get_status' }));
+      socket.onopen = () => {
+        updateConnectionUI(true, '已连电脑');
+        socket.send(JSON.stringify({ action: 'get_status', payload: {} }));
       };
 
-      ws.onclose = () => {
-        onWsDisconnected();
-        setTimeout(connectWS, 3000);
+      socket.onclose = () => {
+        updateConnectionUI(false, '连接断开(重试)');
+        setTimeout(initWebSocket, 3000);
       };
 
-      ws.onerror = () => {
-        onWsDisconnected();
+      socket.onerror = () => {
+        updateConnectionUI(false, '连接失败');
       };
 
-      ws.onmessage = (event) => {
+      socket.onmessage = (event) => {
         try {
-          const msg = JSON.parse(event.data);
-          handleServerMessage(msg);
+          const res = JSON.parse(event.data);
+          handleServerMessage(res);
         } catch (e) {
-          console.error('Failed to parse WS msg:', e);
+          console.error('Error parsing WS message:', e);
         }
       };
+    } catch (e) {
+      updateConnectionUI(false, '连接异常');
+      setTimeout(initWebSocket, 3000);
     }
+  }
 
-    function onWsDisconnected() {
-      const badge = document.getElementById('connStatus');
-      badge.className = 'status-badge offline';
-      badge.innerText = '连接断开 (重连中)';
+  function updateConnectionUI(connected, text) {
+    const badge = document.getElementById('connectionStatus');
+    const statusText = document.getElementById('statusText');
+    if (connected) {
+      badge.className = 'status-badge connected';
+    } else {
+      badge.className = 'status-badge disconnected';
     }
+    statusText.innerText = text;
+  }
 
-    function handleServerMessage(msg) {
-      if (msg.type === 'status' && msg.action === 'get_status') {
-        renderServerStatus(msg.data);
-      } else if (msg.type === 'event') {
-        const ev = msg.data;
-        handleAgentEvent(ev);
-      } else if (msg.type === 'response' && msg.action === 'start_session') {
-        if (msg.success) {
-          activeSessionId = msg.data.id;
-          startSessionTimer(msg.data.agent_type);
-          appendLog(`\n>>> 任务已在电脑端拉起! 会话ID: ${activeSessionId}`, 'log-success');
-        } else {
-          alert('启动任务失败: ' + msg.error);
-        }
-      }
-    }
-
-    function renderServerStatus(data) {
-      if (!data) return;
-      if (data.working_dir && data.working_dir !== '.') {
-        document.getElementById('workingDirInput').value = data.working_dir;
-      }
-      if (data.available_agents && Array.isArray(data.available_agents)) {
+  // 2. 消息协议与 Antigravity 事件流分发
+  function handleServerMessage(res) {
+    if (res.type === 'status' && res.data) {
+      if (res.data.available_agents && res.data.available_agents.length > 0) {
         const sel = document.getElementById('agentSelect');
         sel.innerHTML = '';
-        data.available_agents.forEach(item => {
+        res.data.available_agents.forEach(item => {
           const opt = document.createElement('option');
-          if (item.includes('(')) {
-            const typeMatch = item.match(/\(([^)]+)\)/);
-            opt.value = typeMatch ? typeMatch[1] : item.toLowerCase();
-          } else {
-            opt.value = item.toLowerCase();
-          }
+          if (item.includes('(claude)')) opt.value = 'claude';
+          else if (item.includes('(codex)')) opt.value = 'codex';
+          else if (item.includes('(aider)')) opt.value = 'aider';
+          else opt.value = 'generic';
           opt.innerText = item;
           sel.appendChild(opt);
         });
       }
-    }
-
-    function handleAgentEvent(ev) {
-      if (!ev) return;
-
-      document.getElementById('sessionStatusPill').innerText = ev.status || '执行中';
-
-      // 格式化输出
-      if (ev.message) {
-        let cls = 'log-line';
-        if (ev.status === 'completed') cls += ' log-success';
-        else if (ev.status === 'awaiting_approval') cls += ' log-warning';
-        else if (ev.type === 'tool_call_request') cls += ' log-warning';
-        else if (ev.message.includes('💻')) cls += ' log-cmd';
-        else cls += ' log-agent';
-
-        appendLog(ev.message, cls);
+    } else if (res.type === 'response') {
+      if (res.action === 'start_session') {
+        if (res.success && res.data) {
+          activeSessionId = res.data.id;
+          startTimer();
+          setSendButtonState(true);
+        } else {
+          alert('启动任务失败: ' + (res.error || '未知错误'));
+          setSendButtonState(false);
+        }
+      } else if (res.action === 'get_diff') {
+        renderDiffContent(res.data);
       }
+    } else if (res.type === 'event' && res.data) {
+      dispatchAgentEvent(res.data);
+    }
+  }
 
-      if (ev.type === 'tool_call_request') {
-        activeSessionId = ev.session_id;
-        showApprovalModal(ev);
-      } else if (ev.type === 'session_finished' || ev.status === 'completed') {
-        hideApprovalModal();
-        stopSessionTimer();
+  function dispatchAgentEvent(ev) {
+    const timeline = document.getElementById('chatTimeline');
+
+    // 思考中 (Thinking)
+    if (ev.type === 'thinking') {
+      if (!currentThinkingCard) {
+        currentThinkingCard = createThinkingCard(ev.message || '正在深度思考与架构规划...');
+        timeline.appendChild(currentThinkingCard);
+        scrollToBottom();
+      } else {
+        appendThinkingContent(ev.message);
       }
     }
+    // 工具调用开始 (ToolCallStart)
+    else if (ev.type === 'tool_call_start') {
+      finishThinking();
+      const toolBadge = createToolBadge(ev.message || ev.tool_call?.command || '执行操作');
+      timeline.appendChild(toolBadge);
+      scrollToBottom();
+    }
+    // 工具调用完成 (ToolCallEnd)
+    else if (ev.type === 'tool_call_end') {
+      updateLastToolBadge(ev.raw_output);
+      scrollToBottom();
+    }
+    // 权限审批 (ToolCallRequest)
+    else if (ev.type === 'tool_call_request') {
+      finishThinking();
+      const approvalCard = createApprovalCard(ev);
+      timeline.appendChild(approvalCard);
+      scrollToBottom();
+    }
+    // 文本回复 (AgentMessage)
+    else if (ev.type === 'agent_message') {
+      finishThinking();
+      const msgBubble = createAgentBubble(ev.message);
+      timeline.appendChild(msgBubble);
+      scrollToBottom();
+    }
+    // 任务状态结束
+    else if (ev.status === 'completed' || ev.type === 'session_finished') {
+      finishThinking();
+      stopTimer();
+      setSendButtonState(false);
+      const doneBubble = createAgentBubble(`✅ **任务执行完毕！** ${ev.message || ''}`);
+      timeline.appendChild(doneBubble);
+      scrollToBottom();
+      // 任务完成后自动尝试探测 Diff
+      requestDiff();
+    }
+    // 普通输出流降级
+    else if (ev.type === 'std_output' && ev.message) {
+      if (currentThinkingCard) {
+        appendThinkingContent(ev.message);
+      } else {
+        const fallback = createAgentBubble(ev.message);
+        timeline.appendChild(fallback);
+        scrollToBottom();
+      }
+    }
+  }
 
-    function startSessionTimer(agentType) {
-      sessionStartTime = Date.now();
-      const container = document.getElementById('sessionContainer');
-      container.innerHTML = `
-        <div class="active-session-card">
-          <div class="session-header">
-            <span class="session-badge">${agentType ? agentType.toUpperCase() : 'AGENT'} 正在执行</span>
-            <span id="sessionTimerText" style="font-size: 0.75rem; color: var(--primary); font-family: var(--font-mono);">00:00</span>
-          </div>
-          <div class="session-desc" id="sessionActiveDesc">电脑正在深度思考与执行任务...</div>
+  // 3. UI 节点生成工厂
+
+  function addUserBubble(text) {
+    const timeline = document.getElementById('chatTimeline');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble-user';
+    bubble.innerText = text;
+    const time = document.createElement('div');
+    time.className = 'bubble-time';
+    time.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    bubble.appendChild(time);
+    timeline.appendChild(bubble);
+    scrollToBottom();
+  }
+
+  function createAgentBubble(markdownText) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-agent';
+
+    const header = document.createElement('div');
+    header.className = 'agent-header';
+    header.innerHTML = `
+      <div class="agent-avatar">AI</div>
+      <span>${document.getElementById('agentSelect').value.toUpperCase()}</span>
+    `;
+
+    const content = document.createElement('div');
+    content.className = 'agent-content';
+    content.innerHTML = renderSimpleMarkdown(markdownText);
+
+    wrap.appendChild(header);
+    wrap.appendChild(content);
+    return wrap;
+  }
+
+  function createThinkingCard(initialText) {
+    const card = document.createElement('div');
+    card.className = 'thinking-card pulsing expanded';
+    card.innerHTML = `
+      <div class="thinking-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <span>💭 深度思考中 · 规划步骤中...</span>
+        <span style="font-size: 10px;">[折叠/展开]</span>
+      </div>
+      <div class="thinking-body">${escapeHtml(initialText)}</div>
+    `;
+    return card;
+  }
+
+  function appendThinkingContent(text) {
+    if (!currentThinkingCard) return;
+    const body = currentThinkingCard.querySelector('.thinking-body');
+    if (body) {
+      body.innerText += '\n' + text;
+      body.scrollTop = body.scrollHeight;
+    }
+  }
+
+  function finishThinking() {
+    if (currentThinkingCard) {
+      currentThinkingCard.classList.remove('pulsing');
+      currentThinkingCard.classList.remove('expanded');
+      const header = currentThinkingCard.querySelector('.thinking-header span');
+      if (header) {
+        header.innerText = '💭 深度规划已就绪';
+      }
+      currentThinkingCard = null;
+    }
+  }
+
+  let latestToolBadge = null;
+
+  function createToolBadge(cmd) {
+    const badge = document.createElement('div');
+    badge.className = 'tool-badge';
+    badge.innerHTML = `
+      <div class="tool-badge-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <span style="font-size: 13px;">💻</span>
+        <span class="tool-cmd">${escapeHtml(cmd)}</span>
+        <span class="tool-status-tag running">运行中...</span>
+      </div>
+      <div class="tool-badge-output">正在执行命令，等待输出...</div>
+    `;
+    latestToolBadge = badge;
+    return badge;
+  }
+
+  function updateLastToolBadge(output) {
+    if (!latestToolBadge) return;
+    const tag = latestToolBadge.querySelector('.tool-status-tag');
+    if (tag) {
+      tag.className = 'tool-status-tag success';
+      tag.innerText = '✓ 完成';
+    }
+    const out = latestToolBadge.querySelector('.tool-badge-output');
+    if (out && output) {
+      out.innerText = output;
+    }
+    latestToolBadge = null;
+  }
+
+  function createApprovalCard(ev) {
+    const card = document.createElement('div');
+    card.className = 'approval-card';
+    const cmd = ev.tool_call?.command || ev.message || '未知操作';
+
+    card.innerHTML = `
+      <div class="approval-title">⚠️ 权限审批请求</div>
+      <div class="approval-desc">Agent 正在请求在电脑上执行以下操作，请确认放行：</div>
+      <div class="approval-cmd">${escapeHtml(cmd)}</div>
+      <div class="approval-actions">
+        <button class="btn-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝执行</button>
+        <button class="btn-approve" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
+      </div>
+    `;
+    return card;
+  }
+
+  function decideApproval(sessionId, allow, btn) {
+    if (!socket) return;
+    const action = allow ? 'approve' : 'reject';
+    socket.send(JSON.stringify({
+      action: action,
+      session_id: sessionId || activeSessionId,
+      payload: {}
+    }));
+
+    const card = btn.closest('.approval-card');
+    if (card) {
+      card.style.animation = 'none';
+      card.innerHTML = `
+        <div class="approval-decided ${allow ? 'approved' : 'rejected'}">
+          ${allow ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作'} · ${new Date().toLocaleTimeString()}
         </div>
       `;
+    }
+  }
 
-      if (sessionTimer) clearInterval(sessionTimer);
-      sessionTimer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
-        const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-        const secs = String(elapsed % 60).padStart(2, '0');
-        const el = document.getElementById('sessionTimerText');
-        if (el) el.innerText = `${mins}:${secs}`;
-      }, 1000);
+  // 4. 输入与交互处理
+  function submitPrompt() {
+    const input = document.getElementById('promptInput');
+    const prompt = input.value.trim();
+    if (!prompt) return;
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      alert('请等待电脑端连接就绪后再派发任务！');
+      return;
     }
 
-    function stopSessionTimer() {
-      if (sessionTimer) clearInterval(sessionTimer);
-      sessionTimer = null;
-      const desc = document.getElementById('sessionActiveDesc');
-      if (desc) desc.innerText = '✅ 任务已圆满完成！';
-      document.getElementById('sessionStatusPill').innerText = '任务完成';
+    const agent = document.getElementById('agentSelect').value;
+    addUserBubble(prompt);
+    input.value = '';
+    input.style.height = 'auto';
+    closeSlashMenu();
+
+    setSendButtonState(true);
+
+    socket.send(JSON.stringify({
+      action: 'start_session',
+      payload: {
+        agent_type: agent,
+        prompt: prompt,
+        working_dir: '.'
+      }
+    }));
+  }
+
+  function setSendButtonState(running) {
+    const btn = document.getElementById('sendBtn');
+    if (running) {
+      btn.innerHTML = '⏹';
+      btn.className = 'btn-send btn-stop';
+      btn.title = '终止任务';
+      btn.onclick = terminateSession;
+    } else {
+      btn.innerHTML = '🚀';
+      btn.className = 'btn-send';
+      btn.title = '派发至电脑执行';
+      btn.onclick = submitPrompt;
     }
+  }
 
-    function showApprovalModal(ev) {
-      const overlay = document.getElementById('approvalOverlay');
-      const msg = document.getElementById('approvalMsg');
-      const box = document.getElementById('approvalCmdBox');
-      const tc = ev.tool_call || {};
-
-      msg.innerText = ev.message || 'Agent 正在请求在电脑上执行敏感命令，请确认是否放行：';
-      box.innerText = tc.command || tc.description || '执行 Shell 脚本';
-      overlay.style.display = 'flex';
-    }
-
-    function hideApprovalModal() {
-      document.getElementById('approvalOverlay').style.display = 'none';
-    }
-
-    function sendApproval(isAllow) {
-      if (!ws || !activeSessionId) return;
-      ws.send(JSON.stringify({
-        action: isAllow ? 'approve' : 'reject',
-        session_id: activeSessionId
+  function terminateSession() {
+    if (socket && activeSessionId) {
+      socket.send(JSON.stringify({
+        action: 'terminate',
+        session_id: activeSessionId,
+        payload: {}
       }));
-      hideApprovalModal();
-      appendLog(isAllow ? '>>> 手机端已批准执行命令 ✅' : '>>> 手机端已拒绝执行命令 ❌', isAllow ? 'log-success' : 'log-error');
     }
+    stopTimer();
+    setSendButtonState(false);
+  }
 
-    function startSession() {
-      const agentType = document.getElementById('agentSelect').value;
-      const workingDir = document.getElementById('workingDirInput').value.trim();
-      const prompt = document.getElementById('promptInput').value.trim();
+  function applyPrompt(text) {
+    const input = document.getElementById('promptInput');
+    input.value = text;
+    input.focus();
+  }
 
-      if (!prompt) {
-        alert('请输入任务需求指令');
-        return;
-      }
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitPrompt();
+    }
+  }
 
-      if (!ws || ws.readyState !== WebSocket.OPEN) {
-        alert('尚未连接到电脑守护进程，请检查网络或点击右上角设置！');
-        return;
-      }
+  function handleInput(e) {
+    const input = e.target;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 
-      ws.send(JSON.stringify({
-        action: 'start_session',
-        payload: {
-          agent_type: agentType,
-          working_dir: workingDir,
-          prompt: prompt
-        }
+    const val = input.value;
+    const pop = document.getElementById('slashPopover');
+    if (val.startsWith('/')) {
+      pop.classList.add('active');
+    } else {
+      pop.classList.remove('active');
+    }
+  }
+
+  function insertSlash(cmd) {
+    const input = document.getElementById('promptInput');
+    if (cmd === '/test') input.value = '运行所有单元测试并修复发现的错误';
+    else if (cmd === '/review') input.value = '详细审查当前代码未提交的改动';
+    else if (cmd === '/commit') input.value = '为当前修改生成语义化 Git Commit 并提交';
+    else if (cmd === '/clean') input.value = '精简优化当前模块代码，去除多余冗余';
+    closeSlashMenu();
+    input.focus();
+  }
+
+  function closeSlashMenu() {
+    document.getElementById('slashPopover').classList.remove('active');
+  }
+
+  // 5. Diff 抽屉逻辑
+  function openDiffDrawer() {
+    document.getElementById('diffDrawer').classList.add('active');
+    requestDiff();
+  }
+
+  function closeDiffDrawer(e) {
+    document.getElementById('diffDrawer').classList.remove('active');
+  }
+
+  function requestDiff() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        action: 'get_diff',
+        payload: {}
       }));
+    }
+  }
 
-      appendLog(`>>> 派发任务给 [${agentType}]: ${prompt}`, 'log-system');
-      document.getElementById('promptInput').value = '';
-      switchTab('tab-logs');
+  function renderDiffContent(data) {
+    const body = document.getElementById('diffBody');
+    if (!data || (!data.diff && !data.stat)) {
+      body.innerHTML = '<div style="color: #8b949e; text-align: center; margin-top: 40px;">当前工作区干净，无未提交的 Git 改动。</div>';
+      return;
     }
 
-    function appendLog(text, cls = 'log-line') {
-      const screen = document.getElementById('terminalScreen');
-      const line = document.createElement('div');
-      line.className = cls;
-      line.innerText = text;
-      screen.appendChild(line);
-      logCount++;
-      document.getElementById('logBadge').innerText = `(${logCount})`;
+    let html = '';
+    if (data.stat) {
+      html += `<div style="background: #161b22; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; color: #58a6ff;">${escapeHtml(data.stat)}</div>`;
+    }
 
-      if (autoScroll) {
-        screen.scrollTop = screen.scrollHeight;
+    const lines = (data.diff || '').split('\n');
+    lines.forEach(l => {
+      if (l.startsWith('+') && !l.startsWith('+++')) {
+        html += `<div class="diff-line add">${escapeHtml(l)}</div>`;
+      } else if (l.startsWith('-') && !l.startsWith('---')) {
+        html += `<div class="diff-line del">${escapeHtml(l)}</div>`;
+      } else if (l.startsWith('diff --git') || l.startsWith('@@')) {
+        html += `<div class="diff-line header">${escapeHtml(l)}</div>`;
+      } else {
+        html += `<div class="diff-line">${escapeHtml(l)}</div>`;
       }
-    }
+    });
 
-    function clearLogs() {
-      document.getElementById('terminalScreen').innerHTML = '';
-      logCount = 0;
-      document.getElementById('logBadge').innerText = '';
-    }
+    body.innerHTML = html;
+  }
 
-    function copyLogs() {
-      const text = document.getElementById('terminalScreen').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('终端日志已复制到剪贴板！');
-      });
-    }
+  // 6. 工具函数
+  function startTimer() {
+    stopTimer();
+    sessionSeconds = 0;
+    timerInterval = setInterval(() => {
+      sessionSeconds++;
+      const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
+      const s = String(sessionSeconds % 60).padStart(2, '0');
+      document.getElementById('sessionTimer').innerText = `${m}:${s}`;
+    }, 1000);
+  }
 
-    function toggleAutoScroll() {
-      autoScroll = !autoScroll;
-      const btn = document.getElementById('autoScrollBtn');
-      btn.innerText = autoScroll ? '⏬ 自动滚屏: 开' : '⏸️ 自动滚屏: 关';
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
     }
+  }
 
-    function setPrompt(text) {
-      document.getElementById('promptInput').value = text;
+  function scrollToBottom() {
+    const tl = document.getElementById('chatTimeline');
+    tl.scrollTop = tl.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderSimpleMarkdown(md) {
+    if (!md) return '';
+    let out = escapeHtml(md);
+    // 代码块 ```code```
+    out = out.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    // 行内代码 `code`
+    out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // 加粗 **bold**
+    out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // 换行
+    out = out.replace(/\n/g, '<br/>');
+    return out;
+  }
+
+  function promptManualConnect() {
+    const current = localStorage.getItem('cw_ws_url') || getWsUrl();
+    const url = prompt('请输入电脑端 WebSocket 连接地址：', current);
+    if (url) {
+      localStorage.setItem('cw_ws_url', url);
+      location.reload();
     }
+  }
 
-    function selectDir(path) {
-      document.getElementById('workingDirInput').value = path;
-      switchTab('tab-control');
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.content-area').forEach(c => c.style.display = 'none');
-      
-      const btnId = 'tab-btn-' + tabId.replace('tab-', '');
-      const btn = document.getElementById(btnId);
-      if (btn) btn.classList.add('active');
-      
-      const target = document.getElementById(tabId);
-      if (target) target.style.display = (tabId === 'tab-logs') ? 'block' : 'flex';
-    }
-
-    function showConnModal() {
-      document.getElementById('customWsInput').value = currentWsUrl;
-      document.getElementById('connModal').style.display = 'flex';
-    }
-
-    function hideConnModal() {
-      document.getElementById('connModal').style.display = 'none';
-    }
-
-    function applyCustomWs() {
-      const val = document.getElementById('customWsInput').value.trim();
-      if (val) {
-        currentWsUrl = val;
-        localStorage.setItem('cloudwork_ws_url', val);
-        hideConnModal();
-        connectWS();
-      }
-    }
-
-    window.onload = connectWS;
-  </script>
+  // 页面加载启动
+  window.addEventListener('DOMContentLoaded', initWebSocket);
+</script>
 </body>
 </html>

@@ -90,9 +90,9 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 			case "turn.started":
 				events = append(events, &AgentEvent{
 					AgentType: d.Type(),
-					Type:      EventStatusChange,
+					Type:      EventThinking,
 					Status:    StatusThinking,
-					Message:   "⚡ Codex 开始深度思考与代码规划...",
+					Message:   "Codex 正在深度思考与规划...",
 					Timestamp: now,
 				})
 			case "item.started":
@@ -102,9 +102,13 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 						cmd, _ := item["command"].(string)
 						events = append(events, &AgentEvent{
 							AgentType: d.Type(),
-							Type:      EventStdOutput,
-							Status:    StatusThinking,
-							Message:   fmt.Sprintf("💻 [执行命令] %s", cmd),
+							Type:      EventToolCallStart,
+							Status:    StatusExecutingTool,
+							Message:   cmd,
+							ToolCall: &ToolCallPayload{
+								ToolName: "Bash",
+								Command:  cmd,
+							},
 							Timestamp: now,
 						})
 					}
@@ -116,7 +120,7 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 						if text, ok := item["text"].(string); ok && text != "" {
 							events = append(events, &AgentEvent{
 								AgentType: d.Type(),
-								Type:      EventStdOutput,
+								Type:      EventAgentMessage,
 								Status:    StatusThinking,
 								Message:   text,
 								RawOutput: text,
@@ -125,16 +129,15 @@ func (d *CodexDriver) ProcessOutput(rawOutput string) []*AgentEvent {
 						}
 					} else if itemType == "command_execution" {
 						output, _ := item["aggregated_output"].(string)
-						if output != "" {
-							events = append(events, &AgentEvent{
-								AgentType: d.Type(),
-								Type:      EventStdOutput,
-								Status:    StatusThinking,
-								Message:   strings.TrimSpace(output),
-								RawOutput: output,
-								Timestamp: now,
-							})
-						}
+						cmd, _ := item["command"].(string)
+						events = append(events, &AgentEvent{
+							AgentType: d.Type(),
+							Type:      EventToolCallEnd,
+							Status:    StatusThinking,
+							Message:   cmd,
+							RawOutput: strings.TrimSpace(output),
+							Timestamp: now,
+						})
 					}
 				}
 			case "turn.completed":

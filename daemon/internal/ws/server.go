@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/cloudwork/cloudwork-daemon/internal/agent"
@@ -248,6 +250,53 @@ func (s *WSServer) handleMessage(conn *SafeConn, req *ClientMessage) {
 			Type:    "response",
 			Action:  "terminate",
 			Success: err == nil,
+		})
+
+	case "get_diff":
+		type DiffPayload struct {
+			WorkingDir string `json:"working_dir"`
+		}
+		var dp DiffPayload
+		_ = json.Unmarshal(req.Payload, &dp)
+		dir := dp.WorkingDir
+		if dir == "" {
+			dir = s.cfg.WorkingDir
+		}
+		cmdStat := exec.Command("git", "diff", "--stat")
+		cmdStat.Dir = dir
+		statOut, _ := cmdStat.Output()
+
+		cmdDiff := exec.Command("git", "diff")
+		cmdDiff.Dir = dir
+		diffOut, _ := cmdDiff.Output()
+
+		_ = conn.WriteJSON(ServerResponse{
+			Type:    "response",
+			Action:  "get_diff",
+			Success: true,
+			Data: map[string]interface{}{
+				"stat": string(statOut),
+				"diff": string(diffOut),
+			},
+		})
+
+	case "get_workspace_files":
+		cmdFiles := exec.Command("git", "ls-files")
+		cmdFiles.Dir = s.cfg.WorkingDir
+		out, _ := cmdFiles.Output()
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		var files []string
+		for _, l := range lines {
+			l = strings.TrimSpace(l)
+			if l != "" {
+				files = append(files, l)
+			}
+		}
+		_ = conn.WriteJSON(ServerResponse{
+			Type:    "response",
+			Action:  "get_workspace_files",
+			Success: true,
+			Data:    files,
 		})
 	}
 }

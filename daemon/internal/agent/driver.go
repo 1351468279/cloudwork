@@ -9,7 +9,11 @@ type EventType string
 
 const (
 	EventStatusChange    EventType = "status_change"     // 状态变更: IDLE, THINKING, EXECUTING, AWAITING_APPROVAL
+	EventThinking        EventType = "thinking"          // Agent 思考与内部规划链
+	EventToolCallStart   EventType = "tool_call_start"   // 工具调用开始
+	EventToolCallEnd     EventType = "tool_call_end"     // 工具调用完成
 	EventToolCallRequest EventType = "tool_call_request" // 触发工具调用请求（等待手机审批）
+	EventAgentMessage    EventType = "agent_message"     // Agent 结构化文本回复
 	EventFileDiff        EventType = "file_diff"         // 文件变更 Diff
 	EventStdOutput       EventType = "std_output"        // 终端标准输出流
 	EventSessionFinished EventType = "session_finished"  // 任务完成
