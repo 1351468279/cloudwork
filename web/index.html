@@ -2,50 +2,84 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CloudWork 掌上指挥官 (Antigravity 2.0)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CloudWork · Google Antigravity 2.0</title>
+  <!-- Google 官方字体与 Material Symbols 深度对齐 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;600;700&family=Google+Sans:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <link rel="shortcut icon" href="https://www.gstatic.com/antigravity/logos/favicon.png">
+
   <style>
     :root {
-      --bg: #101216;
-      --card-bg: #161920;
-      --card-inner: #0e1014;
-      --border: #242933;
-      --border-subtle: #1e222b;
-      --primary: #58a6ff;
-      --primary-glow: rgba(88, 166, 255, 0.2);
-      --success: #3fb950;
-      --danger: #f85149;
-      --warning: #d29922;
-      --purple: #bc8cff;
-      --text: #e6edf3;
-      --text-muted: #8b949e;
-      --text-dim: #656d76;
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      /* Google Antigravity 2.0 官方原生配色系统与 Design Tokens */
+      --ga-bg: #131314;
+      --ga-surface: #1e1f20;
+      --ga-surface-card: #1e2023;
+      --ga-surface-card-subtle: #181a1d;
+      --ga-surface-dock: #1e2024;
+      --ga-surface-dock-focus: #23262c;
+      --ga-border: rgba(255, 255, 255, 0.08);
+      --ga-border-active: #4a505b;
+      --ga-border-subtle: rgba(255, 255, 255, 0.05);
+      --ga-primary: #a8c7fa;
+      --ga-primary-text: #062e6f;
+      --ga-on-surface: #e3e3e3;
+      --ga-on-surface-variant: #9aa0a6;
+      --ga-text-dim: #656d76;
+      --ga-text-code: #f2c94c;
+      --ga-text-code-bg: rgba(242, 201, 76, 0.12);
+      --ga-green: #3fb950;
+      --ga-red: #f85149;
+      --ga-warning: #d29922;
+      --ga-font: "Google Sans Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --ga-font-brand: "Google Sans", sans-serif;
+      --ga-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--ga-bg);
+      color: var(--ga-on-surface);
+      font-family: var(--ga-font);
       overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
+
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      vertical-align: middle;
+    }
+
     .app-viewport {
-      max-width: 640px;
+      max-width: 600px;
       margin: 0 auto;
       height: 100%;
       display: flex;
       flex-direction: column;
       position: relative;
-      background: var(--bg);
+      background: var(--ga-bg);
     }
 
-    /* 1. 顶栏导航 */
+    /* 1. 顶栏导航 (1:1 对齐真实截图) */
     .ag-header {
       height: 52px;
       padding: 0 16px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border-subtle);
+      background: var(--ga-bg);
+      border-bottom: 1px solid var(--ga-border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -58,17 +92,20 @@
       align-items: center;
       gap: 12px;
       overflow: hidden;
+      flex: 1;
     }
-    .btn-nav-icon {
+    .btn-header-icon {
       background: none;
       border: none;
-      color: var(--text);
-      font-size: 18px;
+      color: var(--ga-on-surface);
       cursor: pointer;
-      padding: 4px;
+      padding: 6px;
       display: flex;
       align-items: center;
+      border-radius: 50%;
+      transition: background 0.15s;
     }
+    .btn-header-icon:active { background: rgba(255, 255, 255, 0.08); }
     .header-title-box {
       display: flex;
       flex-direction: column;
@@ -76,17 +113,17 @@
       cursor: pointer;
     }
     .header-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-family: var(--ga-font-brand);
+      font-size: 15px;
+      font-weight: 500;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 200px;
     }
     .header-status-sub {
       font-size: 10px;
-      color: var(--text-muted);
+      color: var(--ga-on-surface-variant);
       display: flex;
       align-items: center;
       gap: 5px;
@@ -95,71 +132,82 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #3fb950;
+      background: var(--ga-green);
       box-shadow: 0 0 6px rgba(63, 185, 80, 0.6);
     }
     .header-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .diff-badge-btn {
-      background: #1c2128;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 8px;
+    .avatar-wrapper {
+      position: relative;
+      padding: 2px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a73e8, #a142f4, #ea4335);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
     .avatar-circle {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
-      background: #d12574;
+      background: #c2185b;
       color: #fff;
       font-size: 12px;
-      font-weight: bold;
+      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      border: 1.5px solid var(--ga-bg);
     }
 
     /* 2. 主对话流画布 */
     .ag-timeline {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 16px 16px 24px 16px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       scroll-behavior: smooth;
     }
-    .ag-timeline::-webkit-scrollbar { width: 4px; }
-    .ag-timeline::-webkit-scrollbar-thumb { background: #242933; border-radius: 2px; }
+    .ag-timeline::-webkit-scrollbar { width: 3px; }
+    .ag-timeline::-webkit-scrollbar-thumb { background: #282a2e; border-radius: 2px; }
 
-    /* 用户气泡 */
-    .user-bubble {
+    /* 用户消息气泡 (1:1 截图) */
+    .user-turn {
       align-self: flex-end;
       max-width: 86%;
-      background: #21262d;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .user-bubble {
+      background: #24272e;
       color: #fff;
       padding: 10px 14px;
       border-radius: 18px 18px 4px 18px;
       font-size: 14px;
       line-height: 1.5;
       word-break: break-word;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .bubble-time {
-      font-size: 10px;
-      color: var(--text-dim);
-      margin-top: 4px;
-      text-align: right;
+    /* 缩略图预览条 (附件图片卡) */
+    .attachments-carousel {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 2px;
+    }
+    .attachment-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid var(--ga-border);
+      object-fit: cover;
+      background: #1e1f20;
     }
 
     /* Agent 消息区块 */
@@ -168,8 +216,8 @@
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      animation: fadeIn 0.15s ease-out;
+      gap: 10px;
+      animation: fadeIn 0.2s ease-out;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
@@ -182,13 +230,13 @@
       gap: 8px;
       font-size: 11px;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--ga-on-surface-variant);
     }
     .agent-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      background: linear-gradient(135deg, #a371f7, #58a6ff);
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #7c4dff, #448aff);
       color: #fff;
       font-size: 9px;
       font-weight: bold;
@@ -199,14 +247,14 @@
 
     /* 思考折叠条 */
     .thinking-accordion {
-      background: rgba(188, 140, 255, 0.08);
-      border: 1px solid rgba(188, 140, 255, 0.2);
+      background: rgba(188, 140, 255, 0.06);
+      border: 1px solid rgba(188, 140, 255, 0.15);
       border-radius: 8px;
       overflow: hidden;
       margin: 2px 0;
     }
     .thinking-header {
-      padding: 6px 10px;
+      padding: 6px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -216,13 +264,13 @@
     }
     .thinking-body {
       display: none;
-      padding: 8px 10px;
-      font-family: var(--font-mono);
+      padding: 8px 12px;
+      font-family: var(--ga-font-mono);
       font-size: 11px;
       color: #bc8cff;
-      background: rgba(0, 0, 0, 0.25);
-      border-top: 1px solid rgba(188, 140, 255, 0.15);
-      max-height: 150px;
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid rgba(188, 140, 255, 0.1);
+      max-height: 140px;
       overflow-y: auto;
       white-space: pre-wrap;
     }
@@ -230,8 +278,8 @@
 
     /* 步骤折叠清单 */
     .steps-accordion {
-      background: #161920;
-      border: 1px solid var(--border);
+      background: var(--ga-surface-card-subtle);
+      border: 1px solid var(--ga-border);
       border-radius: 8px;
       overflow: hidden;
       margin: 2px 0;
@@ -245,30 +293,28 @@
       font-size: 12px;
       color: #79c0ff;
     }
-    .steps-header:hover { background: #1c212b; }
+    .steps-header:hover { background: #1f2228; }
     .steps-body {
       display: none;
       padding: 8px 12px;
-      background: #0e1014;
-      border-top: 1px solid var(--border);
+      background: #0d0f12;
+      border-top: 1px solid var(--ga-border);
       flex-direction: column;
       gap: 6px;
-      max-height: 200px;
+      max-height: 180px;
       overflow-y: auto;
     }
     .steps-accordion.expanded .steps-body { display: flex; }
     .step-item {
-      font-family: var(--font-mono);
+      font-family: var(--ga-font-mono);
       font-size: 11px;
       color: #8b949e;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 3px 0;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.25);
+      padding: 2px 0;
     }
-    .step-item:last-child { border-bottom: none; }
     .step-cmd {
       color: #79c0ff;
       overflow: hidden;
@@ -281,123 +327,120 @@
     .agent-body {
       font-size: 14px;
       line-height: 1.65;
-      color: #e6edf3;
+      color: var(--ga-on-surface);
       word-break: break-word;
     }
-    .agent-body p { margin-bottom: 10px; }
+    .agent-body h1, .agent-body h2, .agent-body h3 {
+      font-family: var(--ga-font-brand);
+      color: #fff;
+      margin: 12px 0 6px 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .agent-body p { margin-bottom: 8px; }
     .agent-body p:last-child { margin-bottom: 0; }
     .agent-body code {
-      background: rgba(110, 118, 129, 0.25);
-      padding: 2px 6px;
+      background: var(--ga-text-code-bg);
+      color: var(--ga-text-code);
+      padding: 1px 6px;
       border-radius: 4px;
-      font-family: var(--font-mono);
+      font-family: var(--ga-font-mono);
       font-size: 12px;
-      color: #ffc978;
     }
     .agent-body pre {
-      background: #0e1014;
-      border: 1px solid var(--border);
+      background: #0d0f12;
+      border: 1px solid var(--ga-border);
       border-radius: 8px;
       padding: 10px;
-      font-family: var(--font-mono);
+      font-family: var(--ga-font-mono);
       font-size: 12px;
       overflow-x: auto;
       margin: 8px 0;
       color: #7ee787;
     }
+    .agent-body ul, .agent-body ol {
+      margin-left: 20px;
+      margin-bottom: 8px;
+    }
+    .agent-body li { margin-bottom: 4px; }
 
-    /* 工件卡片 (Implementation Plan 如截图所示) */
+    /* 工件卡片 (Implementation Plan 1:1 截图) */
     .artifact-card {
-      background: #161920;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+      background: var(--ga-surface-card);
+      border: 1px solid var(--ga-border);
+      border-radius: 12px;
+      padding: 12px 14px;
       display: flex;
-      align-items: center;
-      gap: 10px;
+      align-items: flex-start;
+      gap: 12px;
       cursor: pointer;
-      margin-top: 6px;
+      margin-top: 4px;
       transition: all 0.2s;
     }
-    .artifact-card:hover { border-color: var(--primary); }
-    .artifact-icon { font-size: 18px; }
+    .artifact-card:active { background: #24272c; }
+    .artifact-icon { color: #a8c7fa; font-size: 20px; margin-top: 1px; }
     .artifact-meta { flex: 1; overflow: hidden; }
-    .artifact-title { font-size: 13px; font-weight: 600; color: #fff; }
-    .artifact-summary { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .artifact-title { font-family: var(--ga-font-brand); font-size: 14px; font-weight: 500; color: #fff; margin-bottom: 2px; }
+    .artifact-summary { font-size: 12px; color: var(--ga-on-surface-variant); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    /* 代码变更卡片 */
+    /* 代码改动卡片 (1:1 截图) */
     .files-changed-card {
-      background: #161920;
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      background: var(--ga-surface-card);
+      border: 1px solid var(--ga-border);
+      border-radius: 12px;
       padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       margin-top: 4px;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
-    .files-changed-card:hover { border-color: var(--primary); }
-    .files-stat { font-size: 12px; font-weight: 500; color: #fff; }
-    .files-stat .add { color: #3fb950; font-weight: bold; }
-    .files-stat .del { color: #f85149; font-weight: bold; }
+    .files-changed-card:active { background: #24272c; }
+    .files-stat { font-size: 13px; font-weight: 500; color: #fff; }
+    .files-stat .add { color: var(--ga-green); font-weight: bold; }
+    .files-stat .del { color: var(--ga-red); font-weight: bold; }
     .btn-review-card {
-      background: #21262d; border: 1px solid var(--border);
-      color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+      background: #2a2e36;
+      border: 1px solid var(--ga-border);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    /* 底部操作反馈栏 */
+    /* 底部操作反馈栏 (1:1 截图：复制、点赞、点踩) */
     .turn-action-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 6px;
+      padding-top: 4px;
       font-size: 11px;
-      color: var(--text-dim);
+      color: var(--ga-text-dim);
     }
-    .action-icons { display: flex; align-items: center; gap: 6px; }
+    .action-icons { display: flex; align-items: center; gap: 8px; }
     .icon-action-btn {
-      background: none; border: none; color: var(--text-muted);
-      cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 4px;
+      background: none; border: none; color: var(--ga-on-surface-variant);
+      cursor: pointer; padding: 4px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; transition: all 0.15s;
     }
-    .icon-action-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .icon-action-btn:active { background: rgba(255, 255, 255, 0.08); color: #fff; }
 
-    /* 行内审批卡片 */
-    .approval-card {
-      background: rgba(210, 153, 34, 0.08);
-      border: 1.5px solid var(--warning);
-      border-radius: 12px;
-      padding: 12px;
-      margin: 4px 0;
-    }
-    .approval-title { font-size: 12px; font-weight: 700; color: var(--warning); margin-bottom: 6px; }
-    .approval-cmd {
-      background: #0e1014; border: 1px solid var(--border);
-      border-radius: 6px; padding: 8px; font-family: var(--font-mono);
-      font-size: 11px; color: #7ee787; margin-bottom: 10px; word-break: break-all;
-    }
-    .approval-btns { display: flex; gap: 8px; }
-    .btn-app-reject {
-      flex: 1; height: 38px; background: transparent; border: 1.5px solid var(--danger);
-      color: #f85149; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
-    }
-    .btn-app-allow {
-      flex: 1; height: 38px; background: var(--success); border: none;
-      color: #fff; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
-    }
-
-    /* 3. 排队消息卡片 (Queued Messages 如截图所示) */
+    /* 3. 排队消息卡片 (Queued Messages 1:1 截图) */
     .queued-island {
-      background: #1c2128;
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      background: var(--ga-surface-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
       padding: 10px 14px;
       margin: 0 16px 8px 16px;
       display: none;
       flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
       animation: slideUp 0.2s ease-out;
       z-index: 12;
     }
@@ -407,13 +450,41 @@
       align-items: center;
       justify-content: space-between;
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--ga-on-surface-variant);
+    }
+    .queued-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin: 0 4px;
     }
     .queued-body {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+    }
+    .queued-thumbs {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .queued-thumb-mini {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--ga-border);
+      background: #141619;
+      object-fit: cover;
+    }
+    .queued-thumb-badge {
+      font-size: 10px;
+      color: var(--ga-on-surface-variant);
+      background: #252830;
+      padding: 2px 4px;
+      border-radius: 4px;
     }
     .queued-text {
       font-size: 13px;
@@ -431,183 +502,169 @@
     .btn-queue-action {
       background: none;
       border: none;
-      color: var(--text-muted);
-      font-size: 14px;
+      color: var(--ga-on-surface-variant);
       cursor: pointer;
-    }
-    .btn-queue-action:hover { color: #fff; }
-
-    /* 4. 悬浮任务状态条 (Running Tasks Bar) */
-    .floating-task-bar {
-      margin: 0 16px 8px 16px;
-      background: #1c2128;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px 14px;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      cursor: pointer;
-      z-index: 10;
-      animation: slideUp 0.2s ease-out;
-    }
-    .floating-task-bar.active { display: flex; }
-    .task-bar-left {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #fff;
+      padding: 2px;
     }
-    .task-spinner {
-      color: #58a6ff;
-      animation: blink 1s infinite alternate;
-    }
-    @keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
-    .task-bar-right { display: flex; align-items: center; gap: 8px; }
-    .btn-task-stop {
-      width: 22px; height: 22px; border-radius: 6px; background: var(--danger);
-      border: none; color: #fff; font-size: 10px; cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-    }
+    .btn-queue-action:active { color: #fff; }
 
-    /* 5. 集成式输入岛 (Integrated Input Island) */
-    .input-island-container {
-      padding: 0 16px 14px 16px;
-      background: var(--bg);
+    /* 4. 签名集成式输入岛 (Antigravity 2.0 Dock) */
+    .input-dock-container {
+      padding: 0 16px 12px 16px;
+      background: var(--ga-bg);
       flex-shrink: 0;
       position: relative;
     }
-    .input-island {
-      background: #181c24;
-      border: 1px solid var(--border);
+    .input-dock {
+      background: var(--ga-surface-dock);
+      border: 1px solid var(--ga-border);
       border-radius: 18px;
-      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: border-color 0.2s;
     }
-    .input-island:focus-within {
-      border-color: #388bfd;
-      box-shadow: 0 0 0 2px var(--primary-glow);
+    .input-dock:focus-within {
+      border-color: #4a505b;
     }
-    .island-textarea {
+
+    /* 状态条内嵌于输入岛顶部 (1:1 截图：2 tasks running ^) */
+    .dock-task-header {
+      padding: 7px 14px;
+      background: #181a1d;
+      border-bottom: 1px solid var(--ga-border-subtle);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+      color: #fff;
+    }
+    .dock-task-header.active { display: flex; }
+    .task-indicator-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .task-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8ab4f8;
+      animation: pulse 1.2s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
+
+    /* 输入区 */
+    .dock-input-area {
+      padding: 10px 14px 4px 14px;
+    }
+    .dock-textarea {
       width: 100%;
       background: transparent;
       border: none;
       outline: none;
       color: #fff;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.45;
       resize: none;
       max-height: 120px;
-      min-height: 24px;
+      min-height: 22px;
       font-family: inherit;
     }
-    .island-textarea::placeholder { color: var(--text-dim); }
-    .island-bottom-row {
+    .dock-textarea::placeholder { color: #757575; }
+
+    /* 岛屿底栏行 (1:1 截图：+、模型药丸、圆形发射钮) */
+    .dock-bottom-row {
+      padding: 4px 12px 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 2px;
     }
-    .island-left-actions { display: flex; align-items: center; gap: 8px; }
-    .btn-plus {
-      width: 26px; height: 26px; border-radius: 50%; background: #242933;
-      border: none; color: var(--text-muted); font-size: 16px; display: flex;
-      align-items: center; justify-content: center; cursor: pointer;
+    .dock-left-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .btn-plus:hover { color: #fff; background: #2f3642; }
+    .btn-plus-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #282b30;
+      border: none;
+      color: var(--ga-on-surface-variant);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .btn-plus-chip:active { background: #32363d; color: #fff; }
 
-    .agent-pill-select {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: #c9d1d9;
-      font-size: 11px;
-      font-weight: 600;
+    .model-pill-selector {
+      background: #252830;
+      border: 1px solid var(--ga-border);
+      color: #e3e3e3;
+      font-size: 12px;
+      font-weight: 500;
       padding: 4px 10px;
       border-radius: 20px;
       outline: none;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    .btn-send-circle {
-      width: 32px; height: 32px; border-radius: 50%; background: #242933;
-      border: none; color: var(--text-dim); font-size: 16px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    .btn-send-dock {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #2e3135;
+      border: none;
+      color: #757575;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .btn-send-circle.ready {
-      background: var(--primary); color: #0e1014; box-shadow: 0 2px 8px var(--primary-glow);
+    .btn-send-dock.ready {
+      background: #a8c7fa;
+      color: #062e6f;
     }
-    .btn-send-circle.running { background: var(--danger); color: #fff; }
+    .btn-send-dock.running {
+      background: #ea4335;
+      color: #fff;
+    }
 
-    /* 快捷芯片栏 */
-    .chips-popover {
-      display: none; gap: 6px; padding: 6px 0; overflow-x: auto; white-space: nowrap;
-    }
-    .chips-popover.active { display: flex; }
-    .chips-popover::-webkit-scrollbar { display: none; }
-    .quick-chip {
-      background: #21262d; border: 1px solid var(--border); color: var(--text-muted);
-      font-size: 11px; padding: 4px 10px; border-radius: 14px; cursor: pointer; flex-shrink: 0;
-    }
-    .quick-chip:hover { color: #fff; border-color: var(--primary); }
-
-    /* 斜杠指令浮层 */
-    .slash-menu {
-      position: absolute; bottom: 84px; left: 16px; right: 16px;
-      background: #1c2128; border: 1px solid var(--border); border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; flex-direction: column;
-      overflow: hidden; z-index: 30;
-    }
-    .slash-menu.active { display: flex; }
-    .slash-row {
-      padding: 10px 14px; display: flex; align-items: center; gap: 10px;
-      cursor: pointer; border-bottom: 1px solid rgba(48, 54, 61, 0.3);
-    }
-    .slash-row:last-child { border-bottom: none; }
-    .slash-row:hover { background: #262c36; }
-    .slash-cmd { font-family: var(--font-mono); font-size: 13px; color: var(--primary); font-weight: 600; }
-    .slash-hint { font-size: 12px; color: var(--text-muted); }
-
-    /* 6. 会话与工作区左侧抽屉 (Sessions & Workspaces Drawer) */
-    .sidebar-overlay {
+    /* 5. 快捷功能面板抽屉 (点击 + 弹出) */
+    .action-sheet-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
-      z-index: 999; display: none;
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+      z-index: 995; display: none; align-items: flex-end; justify-content: center;
     }
-    .sidebar-overlay.active { display: block; }
-    .sidebar-panel {
-      position: absolute; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px;
-      background: #161920; border-right: 1px solid var(--border);
-      display: flex; flex-direction: column; animation: slideRight 0.2s ease-out;
+    .action-sheet-overlay.active { display: flex; }
+    .action-sheet-card {
+      width: 100%; max-width: 600px; background: #1e2024;
+      border-radius: 20px 20px 0 0; padding: 18px 16px;
+      display: flex; flex-direction: column; gap: 12px;
+      animation: slideUp 0.2s ease-out;
     }
-    @keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-    .sidebar-header {
-      padding: 16px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
+    .sheet-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
     }
-    .btn-new-chat {
-      background: var(--primary); color: #0e1014; border: none; font-size: 12px;
-      font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    .sheet-btn-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: #262930; border: 1px solid var(--ga-border); border-radius: 12px;
+      padding: 12px 6px; color: #fff; font-size: 11px; cursor: pointer;
     }
-    .sidebar-body { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-    .sidebar-section-title { font-size: 11px; font-weight: bold; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
-    .session-list-item {
-      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
-      color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      transition: background 0.15s;
-    }
-    .session-list-item:hover { background: #21262d; }
-    .workspace-pill {
-      background: #0e1014; border: 1px solid var(--border); border-radius: 8px;
-      padding: 8px 10px; font-family: var(--font-mono); font-size: 11px; color: #79c0ff;
-      display: flex; align-items: center; justify-content: space-between;
-    }
+    .sheet-btn-item:active { background: #30343d; }
+    .sheet-btn-item span.material-symbols-outlined { font-size: 22px; color: #a8c7fa; }
 
-    /* 7. 任务与终端全屏/半屏抽屉 (Terminal Sheet) */
+    /* 6. 任务与终端全屏/半屏抽屉 (Terminal Sheet) */
     .sheet-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
@@ -615,21 +672,21 @@
     }
     .sheet-overlay.active { display: flex; }
     .sheet-card {
-      width: 100%; max-width: 640px; height: 65vh; background: #0e1014;
-      border: 1px solid var(--border); border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 600px; height: 65vh; background: #0e1014;
+      border: 1px solid var(--ga-border); border-radius: 20px 20px 0 0;
       display: flex; flex-direction: column; overflow: hidden; animation: slideUp 0.2s ease-out;
     }
     .sheet-header {
-      padding: 12px 16px; background: #161920; border-bottom: 1px solid var(--border);
+      padding: 12px 16px; background: #181a1d; border-bottom: 1px solid var(--ga-border);
       display: flex; align-items: center; justify-content: space-between;
     }
-    .sheet-title { font-size: 13px; font-weight: 700; color: #fff; }
+    .sheet-title { font-size: 13px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; }
     .sheet-body {
-      flex: 1; padding: 12px; overflow-y: auto; font-family: var(--font-mono);
+      flex: 1; padding: 12px; overflow-y: auto; font-family: var(--ga-font-mono);
       font-size: 11px; color: #7ee787; line-height: 1.4; white-space: pre-wrap;
     }
 
-    /* 8. 全屏 Diff 抽屉 */
+    /* 7. 全屏 Diff 抽屉 */
     .drawer-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
@@ -638,33 +695,72 @@
     .drawer-overlay.active { display: flex; }
     .drawer-card {
       width: 100%; max-width: 600px; height: 92vh; background: #0d1117;
-      border: 1px solid var(--border); border-radius: 20px; display: flex;
+      border: 1px solid var(--ga-border); border-radius: 20px; display: flex;
       flex-direction: column; overflow: hidden;
     }
     .drawer-header {
-      padding: 14px 18px; background: #161b22; border-bottom: 1px solid var(--border);
+      padding: 14px 18px; background: #161b22; border-bottom: 1px solid var(--ga-border);
       display: flex; align-items: center; justify-content: space-between;
     }
     .drawer-title { font-size: 14px; font-weight: 700; color: #fff; }
-    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
     .drawer-body {
-      flex: 1; padding: 14px; overflow-y: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+      flex: 1; padding: 14px; overflow-y: auto; font-family: var(--ga-font-mono); font-size: 12px; line-height: 1.5;
     }
     .diff-line { white-space: pre-wrap; word-break: break-all; padding: 1px 4px; }
     .diff-line.add { background: rgba(35, 134, 54, 0.2); color: #7ee787; }
     .diff-line.del { background: rgba(218, 54, 51, 0.2); color: #f85149; }
     .diff-line.header { color: #58a6ff; font-weight: bold; margin-top: 8px; }
+
+    /* 8. 侧边栏抽屉 */
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+      z-index: 999; display: none;
+    }
+    .sidebar-overlay.active { display: block; }
+    .sidebar-panel {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px;
+      background: #181a1d; border-right: 1px solid var(--ga-border);
+      display: flex; flex-direction: column; animation: slideRight 0.2s ease-out;
+    }
+    @keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sidebar-header {
+      padding: 16px; border-bottom: 1px solid var(--ga-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .btn-new-chat {
+      background: #a8c7fa; color: #062e6f; border: none; font-size: 12px;
+      font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    }
+    .sidebar-body { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-section-title { font-size: 11px; font-weight: bold; color: var(--ga-text-dim); text-transform: uppercase; margin-bottom: 6px; }
+    .session-list-item {
+      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      color: var(--ga-on-surface); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .session-list-item:hover { background: #24272e; }
+    .workspace-pill {
+      background: #0d0f12; border: 1px solid var(--ga-border); border-radius: 8px;
+      padding: 8px 10px; font-family: var(--ga-font-mono); font-size: 11px; color: #79c0ff;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* 隐藏的文件上传 input */
+    #imageFileInput { display: none; }
   </style>
 </head>
 <body>
 
 <div class="app-viewport">
-  <!-- 1. 顶栏导航 -->
+  <!-- 1. 顶栏导航 (1:1 原生截图对齐) -->
   <header class="ag-header">
     <div class="header-left">
-      <button class="btn-nav-icon" onclick="openSidebar()" title="会话与设置">☰</button>
+      <button class="btn-header-icon" onclick="openSidebar()" title="会话与历史">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
       <div class="header-title-box" onclick="openSidebar()">
-        <span id="sessionTitle" class="header-title">CloudWork Remote Control</span>
+        <span id="sessionTitle" class="header-title">AI Coding Remote Cont...</span>
         <div class="header-status-sub">
           <div class="status-dot-mini"></div>
           <span id="headerStatusText">家中电脑已就绪</span>
@@ -673,16 +769,24 @@
     </div>
 
     <div class="header-right">
-      <button class="diff-badge-btn" onclick="openDiffDrawer()">
-        <span>📝 Diff</span>
+      <button class="btn-header-icon" onclick="openTerminalSheet()" title="终端控制台">
+        <span class="material-symbols-outlined">terminal</span>
       </button>
-      <div class="avatar-circle" title="用户中心">M</div>
+      <button class="btn-header-icon" onclick="openDiffDrawer()" title="代码比对">
+        <span class="material-symbols-outlined">difference</span>
+      </button>
+      <button class="btn-header-icon" onclick="openSidebar()" title="会话历史">
+        <span class="material-symbols-outlined">chat_bubble_outline</span>
+      </button>
+      <div class="avatar-wrapper" onclick="openSidebar()" title="Google 账号">
+        <div class="avatar-circle">M</div>
+      </div>
     </div>
   </header>
 
-  <!-- 2. 主对话流画布 -->
+  <!-- 2. 对话主画布 -->
   <main id="agTimeline" class="ag-timeline">
-    <!-- 欢迎卡片 -->
+    <!-- 初始欢迎卡片 -->
     <div class="agent-turn">
       <div class="agent-meta">
         <div class="agent-icon">AI</div>
@@ -690,102 +794,116 @@
       </div>
       <div class="agent-body">
         <p>👋 你好！我是你的 <strong>CloudWork 远程 Agent 协同中心</strong>。</p>
-        <p>已直连家中电脑，支持调度 <strong>OpenAI Codex / Claude Code</strong>。你可以随时在下方输入指令或使用 <code>/</code> 命令；执行长任务时，你还可以继续在下方<strong>排队追加后续指令</strong>。</p>
+        <p>已直连家中电脑，支持调度 <strong>OpenAI Codex / Claude Code</strong>。你可以随时在下方输入指令；执行长任务时，你还可以继续在下方<strong>排队追加后续指令与图片截图</strong>。</p>
       </div>
     </div>
   </main>
 
-  <!-- 3. 排队消息卡片 (Queued Messages) -->
+  <!-- 3. Queued Messages 排队岛 (1:1 截图对齐) -->
   <div id="queuedIsland" class="queued-island">
     <div class="queued-header">
-      <span id="queuedCountText">Queued Messages 1 · Sends after agent finishes</span>
-      <span style="font-size: 10px;">˅</span>
+      <div>
+        <strong style="color: #fff;">Queued Messages</strong>
+        <span id="queuedBadge" class="queued-badge">1</span>
+        <span style="color: var(--ga-on-surface-variant);">Sends after agent finishes</span>
+      </div>
+      <span class="material-symbols-outlined" style="font-size: 16px;">expand_more</span>
     </div>
     <div class="queued-body">
-      <span id="queuedMessageText" class="queued-text"></span>
+      <div id="queuedThumbs" class="queued-thumbs" style="display: none;"></div>
+      <span id="queuedMessageText" class="queued-text">这是当前的交互流程，我截图了一部分</span>
       <div class="queued-actions">
-        <button class="btn-queue-action" onclick="editQueuedMessage()" title="编辑">✏️</button>
-        <button class="btn-queue-action" onclick="deleteQueuedMessage()" title="删除">🗑️</button>
+        <button class="btn-queue-action" onclick="jumpQueueExecute()" title="立即插队执行">
+          <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+        </button>
+        <button class="btn-queue-action" onclick="editQueuedMessage()" title="编辑">
+          <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+        </button>
+        <button class="btn-queue-action" onclick="deleteQueuedMessage()" title="删除">
+          <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 4. 悬浮任务状态条 (Running Tasks Bar) -->
-  <div id="floatingTaskBar" class="floating-task-bar" onclick="openTerminalSheet()">
-    <div class="task-bar-left">
-      <span class="task-spinner">●</span>
-      <span id="taskBarText">1 task running (00:00)</span>
-    </div>
-    <div class="task-bar-right">
-      <span style="color: var(--text-dim); font-size: 11px;">^</span>
-      <button class="btn-task-stop" onclick="terminateSession(event)" title="终止任务">⏹</button>
-    </div>
-  </div>
+  <!-- 4. Antigravity 2.0 签名集成式输入底座 (Dock) -->
+  <footer class="input-dock-container">
+    <div class="input-dock">
+      <!-- 任务运行状态内嵌条 (1:1 截图：2 tasks running ^) -->
+      <div id="dockTaskHeader" class="dock-task-header" onclick="openTerminalSheet()">
+        <div class="task-indicator-left">
+          <div class="task-pulse-dot"></div>
+          <span id="dockTaskText">1 task running (00:00)</span>
+        </div>
+        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--ga-on-surface-variant);">expand_less</span>
+      </div>
 
-  <!-- 斜杠指令浮层 -->
-  <div id="slashMenu" class="slash-menu">
-    <div class="slash-row" onclick="insertSlash('/test')">
-      <span class="slash-cmd">/test</span>
-      <span class="slash-hint">自动运行所有单元测试并修复发现的问题</span>
-    </div>
-    <div class="slash-row" onclick="insertSlash('/review')">
-      <span class="slash-cmd">/review</span>
-      <span class="slash-hint">详细审查当前项目未提交的代码变更</span>
-    </div>
-    <div class="slash-row" onclick="insertSlash('/commit')">
-      <span class="slash-cmd">/commit</span>
-      <span class="slash-hint">根据修改内容自动生成规范的 Git Commit 并提交</span>
-    </div>
-    <div class="slash-row" onclick="insertSlash('/clean')">
-      <span class="slash-cmd">/clean</span>
-      <span class="slash-hint">精简模块的多余代码、修复 Lint 与优化性能</span>
-    </div>
-  </div>
+      <!-- 输入区域 -->
+      <div class="dock-input-area">
+        <div id="dockAttachmentsPreview" class="attachments-carousel" style="display: none;"></div>
+        <textarea
+          id="promptInput"
+          class="dock-textarea"
+          placeholder="Ask anything, @ to mention, / for actions"
+          rows="1"
+          onkeydown="handleKeyDown(event)"
+          oninput="handleInput(event)"
+        ></textarea>
+      </div>
 
-  <!-- 5. Antigravity 2.0 签名集成式输入岛 -->
-  <footer class="input-island-container">
-    <div id="chipsPopover" class="chips-popover">
-      <div class="quick-chip" onclick="applyPrompt('运行测试并自动修复错误')">🧪 运行测试</div>
-      <div class="quick-chip" onclick="applyPrompt('详细审查当前未提交的代码改动')">🔍 审查代码</div>
-      <div class="quick-chip" onclick="applyPrompt('为当前功能补充清晰的文档')">📝 补充文档</div>
-      <div class="quick-chip" onclick="applyPrompt('精简未使用的代码与无用依赖')">🧹 代码精简</div>
-      <div class="quick-chip" onclick="openDiffDrawer()">📁 查看 Diff</div>
-    </div>
-
-    <div class="input-island">
-      <textarea
-        id="promptInput"
-        class="island-textarea"
-        placeholder="Ask anything, @ to mention, / for actions"
-        rows="1"
-        onkeydown="handleKeyDown(event)"
-        oninput="handleInput(event)"
-      ></textarea>
-
-      <div class="island-bottom-row">
-        <div class="island-left-actions">
-          <button class="btn-plus" onclick="toggleQuickChips()" title="快捷芯片">+</button>
-          <select id="agentSelect" class="agent-pill-select">
+      <!-- 岛屿操作底栏 -->
+      <div class="dock-bottom-row">
+        <div class="dock-left-actions">
+          <button class="btn-plus-chip" onclick="openActionSheet()" title="添加附件与工具">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+          </button>
+          <select id="agentSelect" class="model-pill-selector">
+            <option value="codex">Gemini 3.8 Flash High</option>
             <option value="codex">OpenAI Codex</option>
             <option value="claude">Claude Code</option>
-            <option value="aider">Aider</option>
             <option value="generic">Generic CLI</option>
           </select>
         </div>
 
-        <button id="sendBtn" class="btn-send-circle" onclick="handleSendClick()" title="发送">
-          <span id="sendIcon">→</span>
+        <button id="sendBtn" class="btn-send-dock" onclick="handleSendClick()" title="发送">
+          <span id="sendIcon" class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
         </button>
       </div>
     </div>
   </footer>
 </div>
 
+<!-- 5. 扩展操作面板 (点击 + 弹出) -->
+<div id="actionSheet" class="action-sheet-overlay" onclick="closeActionSheet(event)">
+  <div class="action-sheet-card" onclick="event.stopPropagation()">
+    <div style="font-size: 12px; font-weight: 600; color: var(--ga-on-surface-variant); margin-bottom: 4px;">快捷操作与附件</div>
+    <div class="sheet-grid">
+      <div class="sheet-btn-item" onclick="triggerPhotoUpload()">
+        <span class="material-symbols-outlined">photo_camera</span>
+        <span>上传截图</span>
+      </div>
+      <div class="sheet-btn-item" onclick="applyQuickPrompt('运行单元测试并自动修复发现的错误')">
+        <span class="material-symbols-outlined">science</span>
+        <span>运行测试</span>
+      </div>
+      <div class="sheet-btn-item" onclick="openDiffDrawer()">
+        <span class="material-symbols-outlined">difference</span>
+        <span>查看改动</span>
+      </div>
+      <div class="sheet-btn-item" onclick="applyQuickPrompt('为当前模块生成结构化设计方案与实现计划')">
+        <span class="material-symbols-outlined">description</span>
+        <span>方案计划</span>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="imageFileInput" accept="image/*" multiple onchange="handleImageSelected(event)">
+
 <!-- 6. 会话与工作区侧边抽屉 -->
 <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar(event)">
   <div class="sidebar-panel" onclick="event.stopPropagation()">
     <div class="sidebar-header">
-      <span style="font-size: 14px; font-weight: bold; color: #fff;">会话与工作区</span>
+      <span style="font-size: 14px; font-weight: 600; color: #fff;">会话与工作区</span>
       <button class="btn-new-chat" onclick="startNewSession()">+ 新对话</button>
     </div>
     <div class="sidebar-body">
@@ -793,13 +911,13 @@
         <div class="sidebar-section-title">电脑端工作目录</div>
         <div class="workspace-pill">
           <span id="workspacePath">e:\privateproject\cloudwork</span>
-          <button onclick="changeWorkspaceDir()" style="background: none; border: none; color: var(--primary); cursor: pointer;">更改</button>
+          <button onclick="changeWorkspaceDir()" style="background: none; border: none; color: #a8c7fa; cursor: pointer;">更改</button>
         </div>
       </div>
       <div>
         <div class="sidebar-section-title">最近会话</div>
         <div id="recentSessionsList">
-          <div class="session-list-item" onclick="selectSession('当前项目远程协同')">💬 当前项目远程协同</div>
+          <div class="session-list-item" onclick="selectSession('当前项目远程协同')">💬 AI Coding Remote Control</div>
         </div>
       </div>
     </div>
@@ -810,8 +928,14 @@
 <div id="terminalSheet" class="sheet-overlay" onclick="closeTerminalSheet(event)">
   <div class="sheet-card" onclick="event.stopPropagation()">
     <div class="sheet-header">
-      <div class="sheet-title">⚡ 终端任务控制台</div>
-      <button style="background: none; border: none; color: var(--text-muted); cursor: pointer;" onclick="closeTerminalSheet()">✕</button>
+      <div class="sheet-title">
+        <span class="material-symbols-outlined" style="font-size: 18px; color: #8ab4f8;">terminal</span>
+        <span>终端任务控制台</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button style="background: #ea4335; border: none; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;" onclick="terminateSession(event)">⏹ 终止任务</button>
+        <button style="background: none; border: none; color: var(--ga-on-surface-variant); cursor: pointer;" onclick="closeTerminalSheet()">✕</button>
+      </div>
     </div>
     <div id="terminalBody" class="sheet-body">等待命令输出...</div>
   </div>
@@ -822,7 +946,7 @@
   <div class="drawer-card" onclick="event.stopPropagation()">
     <div class="drawer-header">
       <div class="drawer-title">📁 工作区代码变更 (Git Diff)</div>
-      <button class="drawer-close" onclick="closeDiffDrawer()">✕</button>
+      <button class="drawer-close" onclick="closeDiffDrawer()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button>
     </div>
     <div id="diffBody" class="drawer-body">
       <div style="color: #8b949e; text-align: center; margin-top: 40px;">正在从电脑抓取 Git 改动...</div>
@@ -837,10 +961,10 @@
   let sessionSeconds = 0;
   let currentTurn = null;
   let isExecuting = false;
-  let queuedMessages = []; // 排队消息队列
+  let queuedMessages = []; // 排队消息
+  let currentAttachments = []; // 准备发送的附件 base64
   let terminalLogs = [];
 
-  // 1. 初始化 WebSocket
   function getWsUrl() {
     if (window.location.protocol === 'file:') {
       return localStorage.getItem('cw_ws_url') || 'ws://127.0.0.1:9288/ws';
@@ -865,13 +989,13 @@
 
       socket.onclose = () => {
         statusText.innerText = '电脑连接已断开(重试中)';
-        document.querySelector('.status-dot-mini').style.background = '#f85149';
+        document.querySelector('.status-dot-mini').style.background = '#ea4335';
         setTimeout(initWebSocket, 3000);
       };
 
       socket.onerror = () => {
         statusText.innerText = '连接异常';
-        document.querySelector('.status-dot-mini').style.background = '#f85149';
+        document.querySelector('.status-dot-mini').style.background = '#ea4335';
       };
 
       socket.onmessage = (event) => {
@@ -887,22 +1011,8 @@
     }
   }
 
-  // 2. 消息流分发
   function handleServerMessage(res) {
     if (res.type === 'status' && res.data) {
-      if (res.data.available_agents && res.data.available_agents.length > 0) {
-        const sel = document.getElementById('agentSelect');
-        sel.innerHTML = '';
-        res.data.available_agents.forEach(item => {
-          const opt = document.createElement('option');
-          if (item.includes('(codex)')) opt.value = 'codex';
-          else if (item.includes('(claude)')) opt.value = 'claude';
-          else if (item.includes('(aider)')) opt.value = 'aider';
-          else opt.value = 'generic';
-          opt.innerText = item;
-          sel.appendChild(opt);
-        });
-      }
       if (res.data.working_dir) {
         document.getElementById('workspacePath').innerText = res.data.working_dir;
       }
@@ -911,11 +1021,11 @@
         if (res.success && res.data) {
           activeSessionId = res.data.id;
           startTimer();
-          setTaskBarActive(true, '1 task running');
+          setTaskDockActive(true, '1 task running');
         } else {
           alert('任务启动失败: ' + (res.error || '未知错误'));
           isExecuting = false;
-          setTaskBarActive(false);
+          setTaskDockActive(false);
           if (currentTurn) {
             currentTurn.element.remove();
             currentTurn = null;
@@ -929,7 +1039,6 @@
     }
   }
 
-  // 核心：Antigravity 2.0 任务与排队编排
   function dispatchAgentEvent(ev) {
     if (!currentTurn) {
       currentTurn = createAgentTurn(document.getElementById('agentSelect').value);
@@ -942,7 +1051,7 @@
     } else if (ev.type === 'tool_call_start') {
       const cleanCmd = prettifyCommand(ev.message || ev.tool_call?.command || '执行命令');
       turn.addStep(cleanCmd);
-      updateTaskBarText(`Running ${cleanCmd}`);
+      updateDockTaskText(`Running ${cleanCmd}`);
       appendTerminalLog(`> ${cleanCmd}\n`);
     } else if (ev.type === 'tool_call_end') {
       turn.finishLastStep(ev.raw_output);
@@ -951,28 +1060,26 @@
       turn.showApproval(ev);
     } else if (ev.type === 'agent_message') {
       turn.appendMessage(ev.message);
-      // 智能识别 Implementation Plan 工件
-      if (ev.message.includes('# Implementation Plan') || ev.message.includes('## Proposed Changes')) {
-        turn.showArtifactCard('Implementation Plan', '方案已制定完成，点击查看设计与验证步骤');
+      if (ev.message.includes('# Implementation Plan') || ev.message.includes('## Proposed Changes') || ev.message.includes('方案')) {
+        turn.showArtifactCard('Implementation Plan', 'Implementation plan for transforming CloudWork into an Antigravity-style...');
       }
     } else if (ev.status === 'completed' || ev.type === 'session_finished') {
       turn.markCompleted(ev.message);
       stopTimer();
-      setTaskBarActive(false);
+      setTaskDockActive(false);
       isExecuting = false;
       currentTurn = null;
 
-      // 任务完成后自动探测改动
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
       }
 
-      // 排队消息自动出队无缝接力执行
+      // 排队消息自动出队接力执行
       if (queuedMessages.length > 0) {
-        const nextPrompt = queuedMessages.shift();
+        const next = queuedMessages.shift();
         renderQueuedIsland();
         setTimeout(() => {
-          executePrompt(nextPrompt);
+          executePrompt(next.text, next.images);
         }, 500);
       }
     } else if (ev.type === 'std_output' && ev.message) {
@@ -992,7 +1099,6 @@
     scrollToBottom();
   }
 
-  // 3. Antigravity 2.0 单轮组件工厂
   function createAgentTurn(agentType) {
     const timeline = document.getElementById('agTimeline');
     const container = document.createElement('div');
@@ -1005,74 +1111,76 @@
       <span style="text-transform: uppercase;">${escapeHtml(agentType)}</span>
     `;
 
-    // 思考条
     const thinkingBox = document.createElement('div');
     thinkingBox.className = 'thinking-accordion';
     thinkingBox.style.display = 'none';
     thinkingBox.innerHTML = `
       <div class="thinking-header" onclick="this.parentElement.classList.toggle('expanded')">
-        <span class="thinking-title">💭 思考过程 (规划中...)</span>
-        <span style="font-size: 10px;">[展开/收起]</span>
+        <span class="thinking-title">💭 深度思考与规划中...</span>
+        <span class="material-symbols-outlined" style="font-size: 16px;">expand_more</span>
       </div>
       <div class="thinking-body"></div>
     `;
 
-    // 步骤折叠清单
     const stepsBox = document.createElement('div');
     stepsBox.className = 'steps-accordion';
     stepsBox.style.display = 'none';
     stepsBox.innerHTML = `
       <div class="steps-header" onclick="this.parentElement.classList.toggle('expanded')">
         <span class="steps-summary">⚙️ 正在执行步骤...</span>
-        <span style="font-size: 11px;">[明细 &gt;]</span>
+        <span class="material-symbols-outlined" style="font-size: 16px;">expand_more</span>
       </div>
       <div class="steps-body"></div>
     `;
 
-    // 权限审批
     const approvalBox = document.createElement('div');
     approvalBox.style.display = 'none';
 
-    // 回复正文
     const bodyBox = document.createElement('div');
     bodyBox.className = 'agent-body';
     bodyBox.style.display = 'none';
 
-    // 工件卡片区 (Implementation Plan)
     const artifactBox = document.createElement('div');
     artifactBox.className = 'artifact-card';
     artifactBox.style.display = 'none';
     artifactBox.innerHTML = `
-      <div class="artifact-icon">📄</div>
+      <span class="material-symbols-outlined artifact-icon">description</span>
       <div class="artifact-meta">
         <div id="artifactTitleText" class="artifact-title">Implementation Plan</div>
-        <div id="artifactSummaryText" class="artifact-summary">方案已就绪，点击查看</div>
+        <div id="artifactSummaryText" class="artifact-summary">方案已生成，点击查看设计细节</div>
       </div>
     `;
 
-    // 代码改动卡片
     const filesChangedBox = document.createElement('div');
     filesChangedBox.className = 'files-changed-card';
     filesChangedBox.style.display = 'none';
     filesChangedBox.onclick = openDiffDrawer;
     filesChangedBox.innerHTML = `
       <div class="files-stat">
-        <span id="filesStatText">代码发生改动 &gt;</span>
+        <span id="filesStatText">5 files changed &gt;</span>
       </div>
-      <button class="btn-review-card">📄 Review</button>
+      <button class="btn-review-card">
+        <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
+        <span>Review</span>
+      </button>
     `;
 
-    // 底部操作栏
     const actionBar = document.createElement('div');
     actionBar.className = 'turn-action-bar';
     actionBar.style.display = 'none';
     actionBar.innerHTML = `
-      <div class="action-icons">
-        <button class="icon-action-btn">👍</button>
-        <button class="icon-action-btn">👎</button>
-        <button class="icon-action-btn" onclick="copyTurnText(this)">📋 复制</button>
-      </div>
       <span class="tokens-info"></span>
+      <div class="action-icons">
+        <button class="icon-action-btn" onclick="copyTurnText(this)" title="复制">
+          <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
+        </button>
+        <button class="icon-action-btn" title="点赞">
+          <span class="material-symbols-outlined" style="font-size: 18px;">thumb_up</span>
+        </button>
+        <button class="icon-action-btn" title="点踩">
+          <span class="material-symbols-outlined" style="font-size: 18px;">thumb_down</span>
+        </button>
+      </div>
     `;
 
     container.appendChild(meta);
@@ -1106,7 +1214,7 @@
         item.className = 'step-item';
         item.innerHTML = `
           <span class="step-cmd">${escapeHtml(cmd)}</span>
-          <span style="color: #58a6ff; font-size: 10px;">运行中...</span>
+          <span style="color: #8ab4f8; font-size: 10px;">运行中...</span>
         `;
         stepsBox.querySelector('.steps-body').appendChild(item);
         stepItemsList.push(item);
@@ -1125,12 +1233,12 @@
         approvalBox.style.display = 'block';
         const cmd = prettifyCommand(ev.tool_call?.command || ev.message || '未知操作');
         approvalBox.innerHTML = `
-          <div class="approval-card">
-            <div class="approval-title">⚠️ 权限审批请求</div>
-            <div class="approval-cmd">${escapeHtml(cmd)}</div>
-            <div class="approval-btns">
-              <button class="btn-app-reject" onclick="decideApproval('${ev.session_id}', false, this)">❌ 拒绝</button>
-              <button class="btn-app-allow" onclick="decideApproval('${ev.session_id}', true, this)">✅ 允许执行</button>
+          <div style="background: rgba(210, 153, 34, 0.1); border: 1.5px solid #d29922; border-radius: 12px; padding: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: #d29922; margin-bottom: 6px;">⚠️ 权限审批请求</div>
+            <div style="background: #0d0f12; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #7ee787; word-break: break-all; margin-bottom: 8px;">${escapeHtml(cmd)}</div>
+            <div style="display: flex; gap: 8px;">
+              <button style="flex: 1; height: 36px; background: transparent; border: 1px solid #ea4335; color: #ea4335; border-radius: 8px; font-weight: 600;" onclick="decideApproval('${ev.session_id}', false, this)">拒绝</button>
+              <button style="flex: 1; height: 36px; background: #3fb950; border: none; color: #fff; border-radius: 8px; font-weight: 600;" onclick="decideApproval('${ev.session_id}', true, this)">允许执行</button>
             </div>
           </div>
         `;
@@ -1172,68 +1280,66 @@
     };
   }
 
-  function addUserBubble(text) {
+  function addUserBubble(text, images) {
     const timeline = document.getElementById('agTimeline');
+    const turn = document.createElement('div');
+    turn.className = 'user-turn';
+
+    if (images && images.length > 0) {
+      const carousel = document.createElement('div');
+      carousel.className = 'attachments-carousel';
+      images.forEach(src => {
+        const img = document.createElement('img');
+        img.className = 'attachment-thumb';
+        img.src = src;
+        carousel.appendChild(img);
+      });
+      turn.appendChild(carousel);
+    }
+
     const bubble = document.createElement('div');
     bubble.className = 'user-bubble';
     bubble.innerText = text;
-    const time = document.createElement('div');
-    time.className = 'bubble-time';
-    time.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    bubble.appendChild(time);
-    timeline.appendChild(bubble);
+    turn.appendChild(bubble);
+
+    timeline.appendChild(turn);
     scrollToBottom();
   }
 
-  function decideApproval(sessionId, allow, btn) {
-    if (!socket) return;
-    const action = allow ? 'approve' : 'reject';
-    socket.send(JSON.stringify({
-      action: action,
-      session_id: sessionId || activeSessionId,
-      payload: {}
-    }));
-
-    const card = btn.closest('.approval-card');
-    if (card) {
-      card.innerHTML = `
-        <div style="font-size: 11px; padding: 4px 8px; border-radius: 6px; background: rgba(63, 185, 80, 0.2); color: #3fb950;">
-          ${allow ? '✅ 手机端已授权执行' : '❌ 手机端已拒绝操作'} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-      `;
-    }
-  }
-
-  // 4. 输入交互与排队逻辑
+  // 输入底座交互与 Queued Messages 排队
   function handleSendClick() {
     const input = document.getElementById('promptInput');
     const prompt = input.value.trim();
-    if (!prompt) return;
+    if (!prompt && currentAttachments.length === 0) return;
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       alert('请等待电脑端连接就绪！');
       return;
     }
 
+    const sendingImages = [...currentAttachments];
+    currentAttachments = [];
+    renderDockAttachments();
+
     input.value = '';
     input.style.height = 'auto';
-    closeSlashMenu();
+    document.getElementById('sendBtn').classList.remove('ready');
 
     if (isExecuting) {
-      // 当前已有任务在运行，进入 Queued Messages 排队区
-      queuedMessages.push(prompt);
+      // 当前已有任务在运行，压入 Queued Messages
+      queuedMessages.push({ text: prompt, images: sendingImages });
       renderQueuedIsland();
     } else {
-      executePrompt(prompt);
+      executePrompt(prompt, sendingImages);
     }
   }
 
-  function executePrompt(prompt) {
+  function executePrompt(prompt, images) {
     isExecuting = true;
     const agent = document.getElementById('agentSelect').value;
-    addUserBubble(prompt);
+    addUserBubble(prompt, images);
     currentTurn = createAgentTurn(agent);
-    setTaskBarActive(true, '1 task running');
+    setTaskDockActive(true, '1 task running');
 
     socket.send(JSON.stringify({
       action: 'start_session',
@@ -1252,14 +1358,48 @@
       return;
     }
     island.classList.add('active');
-    document.getElementById('queuedCountText').innerText = `Queued Messages ${queuedMessages.length} · Sends after agent finishes`;
-    document.getElementById('queuedMessageText').innerText = queuedMessages[0];
+    document.getElementById('queuedBadge').innerText = queuedMessages.length;
+    document.getElementById('queuedMessageText').innerText = queuedMessages[0].text;
+
+    const thumbsContainer = document.getElementById('queuedThumbs');
+    thumbsContainer.innerHTML = '';
+    const images = queuedMessages[0].images;
+    if (images && images.length > 0) {
+      thumbsContainer.style.display = 'flex';
+      images.slice(0, 2).forEach(src => {
+        const img = document.createElement('img');
+        img.className = 'queued-thumb-mini';
+        img.src = src;
+        thumbsContainer.appendChild(img);
+      });
+      if (images.length > 2) {
+        const b = document.createElement('span');
+        b.className = 'queued-thumb-badge';
+        b.innerText = `+${images.length - 2}`;
+        thumbsContainer.appendChild(b);
+      }
+    } else {
+      thumbsContainer.style.display = 'none';
+    }
+  }
+
+  function jumpQueueExecute() {
+    if (queuedMessages.length > 0) {
+      terminateSession();
+      const next = queuedMessages.shift();
+      renderQueuedIsland();
+      setTimeout(() => {
+        executePrompt(next.text, next.images);
+      }, 600);
+    }
   }
 
   function editQueuedMessage() {
     if (queuedMessages.length > 0) {
       const msg = queuedMessages.shift();
-      document.getElementById('promptInput').value = msg;
+      document.getElementById('promptInput').value = msg.text;
+      currentAttachments = msg.images || [];
+      renderDockAttachments();
       handleInput({ target: document.getElementById('promptInput') });
       renderQueuedIsland();
     }
@@ -1272,21 +1412,18 @@
     }
   }
 
-  function setTaskBarActive(active, text) {
-    const bar = document.getElementById('floatingTaskBar');
-    const btn = document.getElementById('sendBtn');
-    const icon = document.getElementById('sendIcon');
-
+  function setTaskDockActive(active, text) {
+    const header = document.getElementById('dockTaskHeader');
     if (active) {
-      bar.classList.add('active');
-      document.getElementById('taskBarText').innerText = `${text} (00:00)`;
+      header.classList.add('active');
+      document.getElementById('dockTaskText').innerText = `${text} (00:00)`;
     } else {
-      bar.classList.remove('active');
+      header.classList.remove('active');
     }
   }
 
-  function updateTaskBarText(text) {
-    const el = document.getElementById('taskBarText');
+  function updateDockTaskText(text) {
+    const el = document.getElementById('dockTaskText');
     if (el) {
       const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
       const s = String(sessionSeconds % 60).padStart(2, '0');
@@ -1304,7 +1441,7 @@
       }));
     }
     stopTimer();
-    setTaskBarActive(false);
+    setTaskDockActive(false);
     isExecuting = false;
     if (currentTurn) {
       currentTurn.markCompleted('用户手动终止');
@@ -1319,8 +1456,8 @@
       sessionSeconds++;
       const m = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
       const s = String(sessionSeconds % 60).padStart(2, '0');
-      const text = document.getElementById('taskBarText').innerText.split('(')[0].trim();
-      document.getElementById('taskBarText').innerText = `${text} (${m}:${s})`;
+      const text = document.getElementById('dockTaskText').innerText.split('(')[0].trim();
+      document.getElementById('dockTaskText').innerText = `${text} (${m}:${s})`;
     }, 1000);
   }
 
@@ -1344,54 +1481,82 @@
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 
     const sendBtn = document.getElementById('sendBtn');
-    if (input.value.trim().length > 0) {
+    if (input.value.trim().length > 0 || currentAttachments.length > 0) {
       sendBtn.classList.add('ready');
     } else {
       sendBtn.classList.remove('ready');
     }
+  }
 
-    const pop = document.getElementById('slashMenu');
-    if (input.value.startsWith('/')) {
-      pop.classList.add('active');
-    } else {
-      pop.classList.remove('active');
+  // 扩展操作与附件上传
+  function openActionSheet() {
+    document.getElementById('actionSheet').classList.add('active');
+  }
+
+  function closeActionSheet(e) {
+    document.getElementById('actionSheet').classList.remove('active');
+  }
+
+  function triggerPhotoUpload() {
+    closeActionSheet();
+    document.getElementById('imageFileInput').click();
+  }
+
+  function handleImageSelected(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        currentAttachments.push(ev.target.result);
+        renderDockAttachments();
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  }
+
+  function renderDockAttachments() {
+    const c = document.getElementById('dockAttachmentsPreview');
+    if (currentAttachments.length === 0) {
+      c.style.display = 'none';
+      return;
     }
+    c.style.display = 'flex';
+    c.innerHTML = '';
+    currentAttachments.forEach((src, idx) => {
+      const img = document.createElement('img');
+      img.className = 'attachment-thumb';
+      img.src = src;
+      img.onclick = () => {
+        currentAttachments.splice(idx, 1);
+        renderDockAttachments();
+      };
+      c.appendChild(img);
+    });
+    document.getElementById('sendBtn').classList.add('ready');
   }
 
-  function insertSlash(cmd) {
-    const input = document.getElementById('promptInput');
-    if (cmd === '/test') input.value = '运行所有单元测试并修复发现的错误';
-    else if (cmd === '/review') input.value = '详细审查当前代码未提交的改动';
-    else if (cmd === '/commit') input.value = '为当前修改生成语义化 Git Commit 并提交';
-    else if (cmd === '/clean') input.value = '精简优化当前模块代码，去除多余冗余';
-    closeSlashMenu();
-    handleInput({ target: input });
-    input.focus();
-  }
-
-  function closeSlashMenu() {
-    document.getElementById('slashMenu').classList.remove('active');
-  }
-
-  function toggleQuickChips() {
-    document.getElementById('chipsPopover').classList.toggle('active');
-  }
-
-  function applyPrompt(text) {
+  function applyQuickPrompt(text) {
+    closeActionSheet();
     const input = document.getElementById('promptInput');
     input.value = text;
     handleInput({ target: input });
     input.focus();
   }
 
-  // 5. 抽屉管理
-  function openSidebar() {
-    document.getElementById('sidebarOverlay').classList.add('active');
+  // 抽屉管理
+  function openSidebar() { document.getElementById('sidebarOverlay').classList.add('active'); }
+  function closeSidebar(e) { document.getElementById('sidebarOverlay').classList.remove('active'); }
+  function openTerminalSheet() { document.getElementById('terminalSheet').classList.add('active'); }
+  function closeTerminalSheet() { document.getElementById('terminalSheet').classList.remove('active'); }
+  function openDiffDrawer() {
+    document.getElementById('diffDrawer').classList.add('active');
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
+    }
   }
-
-  function closeSidebar(e) {
-    document.getElementById('sidebarOverlay').classList.remove('active');
-  }
+  function closeDiffDrawer() { document.getElementById('diffDrawer').classList.remove('active'); }
 
   function startNewSession() {
     closeSidebar();
@@ -1419,14 +1584,6 @@
     }
   }
 
-  function openTerminalSheet() {
-    document.getElementById('terminalSheet').classList.add('active');
-  }
-
-  function closeTerminalSheet() {
-    document.getElementById('terminalSheet').classList.remove('active');
-  }
-
   function appendTerminalLog(text) {
     terminalLogs.push(text);
     if (terminalLogs.length > 300) terminalLogs.shift();
@@ -1435,17 +1592,6 @@
       el.innerText = terminalLogs.join('');
       el.scrollTop = el.scrollHeight;
     }
-  }
-
-  function openDiffDrawer() {
-    document.getElementById('diffDrawer').classList.add('active');
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ action: 'get_diff', payload: {} }));
-    }
-  }
-
-  function closeDiffDrawer(e) {
-    document.getElementById('diffDrawer').classList.remove('active');
   }
 
   function renderDiffContent(data) {
@@ -1461,7 +1607,7 @@
 
     let html = '';
     if (data.stat) {
-      html += `<div style="background: #161b22; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; color: #58a6ff;">${escapeHtml(data.stat)}</div>`;
+      html += `<div style="background: #161b22; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; color: #a8c7fa;">${escapeHtml(data.stat)}</div>`;
     }
 
     const lines = (data.diff || '').split('\n');
@@ -1480,7 +1626,6 @@
     body.innerHTML = html;
   }
 
-  // 6. 辅助工具
   function prettifyCommand(cmd) {
     if (!cmd) return '';
     let c = cmd.trim();
@@ -1506,6 +1651,9 @@
     out = out.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
     out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
     out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    out = out.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    out = out.replace(/^# (.*$)/gim, '<h1>$1</h1>');
     out = out.replace(/\n/g, '<br/>');
     return out;
   }
@@ -1516,8 +1664,11 @@
       const body = turn.querySelector('.agent-body');
       if (body) {
         navigator.clipboard.writeText(body.innerText).then(() => {
-          btn.innerText = '✓ 已复制';
-          setTimeout(() => btn.innerText = '📋 复制', 2000);
+          const icon = btn.querySelector('.material-symbols-outlined');
+          if (icon) {
+            icon.innerText = 'check';
+            setTimeout(() => icon.innerText = 'content_copy', 2000);
+          }
         });
       }
     }
